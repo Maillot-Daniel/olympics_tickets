@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import UsersService from "../services/UsersService";
-import "./UserManagementPage.css";
+import "../userpage/UserManagementPage.css";
 
 function UserManagementPage() {
   const [users, setUsers] = useState([]);
@@ -9,24 +9,39 @@ function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // ✅ fetchUsers dans useCallback pour éviter les re-créations à chaque rendu
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const usersData = await UsersService.getAllUsers();
+      setUsers(usersData.ourUsersList || []);
+    } catch (err) {
+      setError(err.message || "Erreur lors de la récupération des utilisateurs");
+      if (err.response?.status === 401) {
+        UsersService.logout();
+        navigate("/login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
   useEffect(() => {
     const checkAccess = async () => {
-      // Vérification synchrone de l'authentification
       if (!UsersService.isAuthenticated()) {
         navigate("/login");
         return;
       }
 
-      // Vérification synchrone du rôle
       if (!UsersService.isAdmin()) {
         setError("Accès réservé aux administrateurs");
         setLoading(false);
         return;
       }
 
-      // Vérification asynchrone via API
       try {
-        await UsersService.getYourProfile(); // Endpoint qui vérifie les permissions
+        await UsersService.getYourProfile();
         fetchUsers();
       } catch (err) {
         if (err.response?.status === 403) {
@@ -42,25 +57,7 @@ function UserManagementPage() {
     };
 
     checkAccess();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const usersData = await UsersService.getAllUsers();
-      console.log("Users API response:", usersData);
-      setUsers(usersData.ourUsersList || []);
-    } catch (err) {
-      setError(err.message || "Erreur lors de la récupération des utilisateurs");
-      if (err.response?.status === 401) {
-        UsersService.logout();
-        navigate("/login");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchUsers, navigate]); // ✅ dépendances correctes
 
   const deleteUser = async (userId) => {
     try {
@@ -88,7 +85,9 @@ function UserManagementPage() {
       <div className="error-container">
         <h2>Erreur</h2>
         <p>{error}</p>
-        {error.includes("expirée") || error.includes("Accès refusé") || error.includes("Accès réservé") ? (
+        {error.includes("expirée") ||
+        error.includes("Accès refusé") ||
+        error.includes("Accès réservé") ? (
           <Link to="/login" className="login-link">
             Se connecter
           </Link>
@@ -107,7 +106,7 @@ function UserManagementPage() {
       <Link to="/register" className="reg-button">
         Ajouter un Utilisateur
       </Link>
-      
+
       <div className="table-responsive">
         <table>
           <thead>
