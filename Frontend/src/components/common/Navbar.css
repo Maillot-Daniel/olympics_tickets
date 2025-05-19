@@ -18,6 +18,33 @@
   height: 80px; /* Hauteur de votre navbar */
 }
 
+.logout-icon {
+  margin-right: 1rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  background-color: #b0e6c7; /* fond vert clair */
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-icon svg {
+  color: #15a551; /* vert normal */
+  transition: color 0.2s ease;
+}
+
+.logout-icon:hover {
+  background-color: #c59595; /* fond rouge clair */
+}
+
+.logout-icon:hover svg {
+  color: #e03c2a; /* rouge vif au survol */
+}
+
+
+
 /* Logo JO */
 .olympic-logo {
   width: 100px;

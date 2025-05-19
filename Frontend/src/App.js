@@ -22,7 +22,6 @@ import CartPage from './components/cart/CartPage';
 import { CartProvider } from './context/CartContext';
 import Homepage from './components/homepage/HomePage';
 
-
 function App() {
   return (
     <BrowserRouter>
@@ -32,25 +31,57 @@ function App() {
           <div className="content">
             <Routes>
               {/* Page d'accueil publique */}
-  <Route path="/home" element={<Homepage />} />
+              <Route path="/home" element={<Homepage />} />
 
-  {/* Page de login accessible à tous */}
-  <Route path="/" element={<LoginPage />} />
-  <Route path="/login" element={<LoginPage />} />
+              {/* Page de login accessible à tous */}
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/login" element={<LoginPage />} />
 
-  {/* Pages protégées */}
-  <Route path="/profile" element={<RequireUser><ProfilePage /></RequireUser>} />
+              {/* Pages protégées utilisateurs authentifiés */}
+              <Route path="/profile" element={
+                <RequireUser>
+                  <ProfilePage />
+                </RequireUser>
+              } />
 
-              {/* Routes admin */}
-              <Route path="/events" element={<RequireAdmin><EventList /></RequireAdmin>} />
-              <Route path="/register" element={<RequireAdmin><RegistrationPage /></RequireAdmin>} />
-              <Route path="/admin/user-management" element={<RequireAdmin><UserManagementPage /></RequireAdmin>} />
-              <Route path="/update-user/:userId" element={<RequireAdmin><UpdateUser /></RequireAdmin>} />
-              <Route path="/create-event" element={<RequireAdmin><CreateEventForm /></RequireAdmin>} />
+              {/* Routes admin protégées */}
+              <Route path="/events" element={
+                <RequireAdmin>
+                  <EventList />
+                </RequireAdmin>
+              } />
+              <Route path="/register" element={
+                <RequireAdmin>
+                  <RegistrationPage />
+                </RequireAdmin>
+              } />
+              <Route path="/admin/user-management" element={
+                <RequireAdmin>
+                  <UserManagementPage />
+                </RequireAdmin>
+              } />
+              <Route path="/update-user/:userId" element={
+                <RequireAdmin>
+                  <UpdateUser />
+                </RequireAdmin>
+              } />
+              <Route path="/create-event" element={
+                <RequireAdmin>
+                  <CreateEventForm />
+                </RequireAdmin>
+              } />
 
-              {/* Routes utilisateur simple */}
-              <Route path="/public-events" element={<RequireUser><Events /></RequireUser>} />
-              <Route path="/cart" element={<RequireUser><CartPage /></RequireUser>} />
+              {/* Routes utilisateur simple protégées */}
+              <Route path="/public-events" element={
+                <RequireUser>
+                  <Events />
+                </RequireUser>
+              } />
+              <Route path="/cart" element={
+                <RequireUser>
+                  <CartPage />
+                </RequireUser>
+              } />
 
               {/* Redirection pour routes inconnues */}
               <Route path="*" element={<Navigate to="/login" replace />} />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import UsersService from "../services/UsersService";
 import OlympicLogo from "../../assets/images/logo-jo.png";
+import { Power } from "lucide-react"; // Icône de déconnexion
 import "./Navbar.css";
 
 function Navbar() {
@@ -45,8 +46,7 @@ function Navbar() {
         <div className="olympic-logo-container">
           <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
         </div>
-        
-        {/* Bouton menu mobile */}
+
         <button 
           className="mobile-menu-button"
           onClick={toggleMobileMenu}
@@ -60,7 +60,6 @@ function Navbar() {
             <li className="nav-item">
               <Link to="/home" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Accueil</Link>
             </li>
-
             <li className="nav-item">
               <Link to="/public-events" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Événements</Link>
             </li>
@@ -89,21 +88,17 @@ function Navbar() {
                 </li>
               </>
             )}
-
-            {authState.isAuthenticated ? (
-              <li className="nav-item">
-                <button onClick={handleLogout} className="nav-link logout-btn">Déconnexion</button>
-              </li>
-            ) : (
-              <li className="nav-item">
-                <Link to="/login" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Connexion</Link>
-              </li>
-            )}
           </ul>
         </div>
+
+        {/* Icône de déconnexion à droite */}
+        {authState.isAuthenticated && (
+          <div className="logout-icon" onClick={handleLogout} title="Se déconnecter">
+            <Power size={20} color="#e74c3c" />
+          </div>
+        )}
       </nav>
-      
-      {/* Espace réservé pour éviter que le contenu soit caché */}
+
       <div className="navbar-spacer"></div>
     </>
   );
