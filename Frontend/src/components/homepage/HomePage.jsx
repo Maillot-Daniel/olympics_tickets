@@ -1,11 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../homepage/HomePage.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [lastThreeEvents, setLastThreeEvents] = useState([]);
 
-  // Fonctions de gestion des clics
+  useEffect(() => {
+    fetchLastThreeEvents();
+  }, []);
+
+  const fetchLastThreeEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/events');
+      const events = response.data.content || response.data;
+      const sorted = events.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setLastThreeEvents(sorted.slice(0, 3));
+    } catch (error) {
+      console.error("Erreur lors du chargement des événements récents:", error);
+    }
+  };
+
+  const handleEventClick = (id) => {
+    navigate(`/events?id=${id}`);
+  };
+
   const handleReserveClick = () => navigate('/events');
   const handleLearnMore = () => navigate('/events');
   const handleAdventureReserve = () => navigate('/events');
@@ -21,13 +41,13 @@ const HomePage = () => {
             L'excellence et l'esprit de découverte se rencontrent pour créer 
             des expériences inoubliables.
           </p>
-          
+
           <div className="hero-values">
             <span>UNITÉ ET PAIX</span>
             <span>EXCELLENCE SPORTIVE</span>
             <span>COMMUNAUTÉ MONDIALE</span>
           </div>
-          
+
           <div className="hero-cta">
             <button className="cta-primary" onClick={handleReserveClick}>
               RÉSERVEZ VOS BILLETS →
@@ -43,29 +63,34 @@ const HomePage = () => {
       <section className="featured-events">
         <h2>Les épreuves phares</h2>
         <p className="section-subtitle">Découvrez les moments les plus attendus des Jeux Olympiques 2024</p>
-        
+
         <div className="events-grid">
-          <div className="event-card">
-            <h3>100m sprint</h3>
-            <p>La course la plus rapide au monde</p>
-          </div>
-          <div className="event-card">
-            <h3>Natation</h3>
-            <p>Des performances olympiques époustouflantes</p>
-          </div>
-          <div className="event-card">
-            <h3>Basketball</h3>
-            <p>Des affrontements spectaculaires</p>
-          </div>
+          {lastThreeEvents.length > 0 ? (
+            lastThreeEvents.map(event => (
+              <div 
+                key={event.id}
+                className="event-card"
+                onClick={() => handleEventClick(event.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <h3>{event.title}</h3>
+                <p>{event.description}</p>
+              </div>
+            ))
+          ) : (
+            <p>Chargement des événements...</p>
+          )}
         </div>
       </section>
+
+      <hr className="separator" />
 
       {/* Section Rejoignez l'aventure */}
       <section className="join-adventure">
         <div className="adventure-content">
           <h2>Rejoignez l'aventure des Jeux Olympiques</h2>
           <p>Vivez l'excitation, soutenez vos athlètes favoris et faites partie de l'histoire.</p>
-          
+
           <div className="highlights">
             <div className="highlight-item">
               <h4>Moments inoubliables</h4>
@@ -76,7 +101,7 @@ const HomePage = () => {
               <p>Découvertes époustouflantes</p>
             </div>
           </div>
-          
+
           <div className="adventure-cta">
             <button className="cta-primary" onClick={handleAdventureReserve}>
               Réservez vos billets
@@ -95,7 +120,7 @@ const HomePage = () => {
         <p className="ticketing-description">
           Suivez ces étapes simples pour garantir votre présence aux Jeux Olympiques 2024.
         </p>
-        
+
         <div className="steps">
           <div className="step">
             <div className="step-number">1</div>

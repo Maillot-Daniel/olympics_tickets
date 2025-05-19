@@ -12,6 +12,7 @@ function ProfilePage() {
         id: ''
     });
     const [isLoading, setIsLoading] = useState(true);
+    const [redirectCountdown, setRedirectCountdown] = useState(3);
     const navigate = useNavigate();
 
     const fetchProfileInfo = useCallback(async () => {
@@ -38,20 +39,25 @@ function ProfilePage() {
         fetchProfileInfo();
     }, [fetchProfileInfo]);
 
-    // Ajout de l'effet pour redirection automatique après 3 secondes
+    // Compte à rebours pour la redirection
     useEffect(() => {
-      if (!isLoading) {
-        const timer = setTimeout(() => {
-          navigate('/home'); // Adaptation possible si la route accueil est différente
-        }, 3000);
-
-        return () => clearTimeout(timer); // Nettoyage au démontage
-      }
-    }, [isLoading, navigate]);
+        if (!isLoading && redirectCountdown > 0) {
+            const timer = setTimeout(() => {
+                setRedirectCountdown(redirectCountdown - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (redirectCountdown === 0) {
+            navigate('/home');
+        }
+    }, [isLoading, redirectCountdown, navigate]);
 
     const canEditProfile = () => {
         const currentUserId = localStorage.getItem('userId');
         return currentUserId && currentUserId === profileInfo.id?.toString();
+    };
+
+    const handleEditClick = () => {
+        navigate(`/update-user/${profileInfo.id}`);
     };
 
     if (isLoading) {
@@ -67,7 +73,7 @@ function ProfilePage() {
                     <span className="status-dot connected"></span>
                     <span>Vous êtes connecté en tant que {profileInfo.role || 'utilisateur'}</span>
                 </div>
-                <p>Vous allez être redirigé vers la page d’accueil dans quelques instants...</p>
+                <p>Vous allez être redirigé vers la page d'accueil dans {redirectCountdown} secondes...</p>
             </div>
 
             {/* Informations du profil */}
@@ -79,7 +85,7 @@ function ProfilePage() {
                 </div>
             </div>
 
-            {/* Bouton d'édition avec message contextuel */}
+            {/* Bouton d'édition corrigé */}
             {(canEditProfile() || profileInfo.role === "ADMIN") && (
                 <div className="edit-section">
                     <p className="edit-info">
@@ -87,12 +93,13 @@ function ProfilePage() {
                             ? "Vous pouvez modifier vos informations personnelles ci-dessous :"
                             : "En tant qu'administrateur, vous pouvez modifier ce profil :"}
                     </p>
-                    <button className="update-profile-btn">
-                        <Link to={`/update-user/${profileInfo.id}`}>
-                            {profileInfo.role === "ADMIN" 
-                                ? "Modifier ce profil" 
-                                : "Modifier mon profil"}
-                        </Link>
+                    <button 
+                        className="update-profile-btn"
+                        onClick={handleEditClick}
+                    >
+                        {profileInfo.role === "ADMIN" 
+                            ? "Modifier ce profil" 
+                            : "Modifier mon profil"}
                     </button>
                 </div>
             )}

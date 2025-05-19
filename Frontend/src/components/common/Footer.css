@@ -1,74 +1,115 @@
 .footer {
   background-color: #2d3748;
   color: #ffffff;
-  padding: 2rem 0;
+  padding: 2.5rem 1rem; /* un peu plus de padding sur top/bottom */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .footer-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 2rem;
+  padding: 0 1rem;
 }
 
 .footer-section {
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
   margin-bottom: 1.5rem;
 }
 
 .footer-section h3 {
-  color: #4299e1;
+  color: #63b3ed; /* couleur un peu plus claire */
   margin-bottom: 1rem;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .footer-section p {
   margin: 0.5rem 0;
   color: #cbd5e0;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 
+/* Conteneur social centré */
 .social-links {
   display: flex;
-  gap: 1.5rem;
+  justify-content: center; /* centrage horizontal */
+  gap: 1.8rem;
   margin-top: 1rem;
 }
 
+/* Style des liens réseaux */
 .social-links a {
   color: #ffffff;
   text-decoration: none;
-  transition: color 0.3s;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .social-links a:hover {
-  color: #4299e1;
+  color: #63b3ed;
   text-decoration: underline;
 }
 
+/* Icônes svg à la même taille, couleur héritée */
+.social-links svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  transition: fill 0.3s ease;
+}
+
+/* Footer bas */
 .footer-bottom {
   text-align: center;
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
+  padding-top: 1.8rem;
+  margin-top: 2rem;
   border-top: 1px solid #4a5568;
   color: #a0aec0;
   font-size: 0.9rem;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .footer-content {
     flex-direction: column;
+    align-items: center; /* centrage vertical sur mobile */
+    gap: 2.5rem;
   }
-  
+
   .footer-section {
     min-width: 100%;
+    text-align: center; /* tout centrer sur mobile */
   }
-  
+
   .social-links {
     justify-content: center;
   }
 }
 
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.8rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem; /* espace sous les réseaux sociaux */
+}
+
+/* Séparation au-dessus du copyright */
+.footer-bottom {
+  text-align: center;
+  padding-top: 1.8rem;
+  margin-top: 2rem;
+  border-top: 1px solid #4a5568;
+  color: #a0aec0;
+  font-size: 0.9rem;
+}

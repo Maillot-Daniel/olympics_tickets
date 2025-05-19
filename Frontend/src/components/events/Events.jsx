@@ -19,13 +19,12 @@ function Events() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
 
+  // Récupération des événements au chargement
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get('http://localhost:8080/api/events');
-        console.log('Données reçues:', response.data);
         const eventsData = Array.isArray(response.data.content) ? response.data.content : [];
         setEvents(eventsData);
       } catch (err) {
@@ -37,21 +36,31 @@ function Events() {
     fetchEvents();
   }, []);
 
+  // Sauvegarde le panier dans localStorage à chaque modification
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Gère l'ouverture du modal d'achat
   const handleBuyClick = (event) => {
     setSelectedEvent(event);
     setSelectedOffer('');
     setQuantity(1);
   };
 
+  // Ajoute un article au panier et met à jour les places restantes
   const handleAddToCart = () => {
     if (!selectedOffer || quantity < 1) return;
 
     const offerDetails = OFFERS.find(o => o.name === selectedOffer);
     if (!offerDetails) return;
+
+    const placesToRemove = quantity * offerDetails.people;
+
+    if (selectedEvent.remainingTickets < placesToRemove) {
+      alert("Pas assez de places disponibles pour cette offre et quantité.");
+      return;
+    }
 
     const total = selectedEvent.price * offerDetails.multiplier * quantity;
 
@@ -66,15 +75,44 @@ function Events() {
     };
 
     setCart([...cart, item]);
+
+    setEvents(events.map(ev => {
+      if (ev.id === selectedEvent.id) {
+        return {
+          ...ev,
+          remainingTickets: ev.remainingTickets - placesToRemove
+        };
+      }
+      return ev;
+    }));
+
     setSelectedEvent(null);
   };
 
+  // Supprime un article du panier et remet à jour les places restantes
   const removeFromCart = (index) => {
+    const itemToRemove = cart[index];
+    const offerDetails = OFFERS.find(o => o.name === itemToRemove.offer);
+    if (!offerDetails) return;
+
+    const placesToAdd = itemToRemove.quantity * offerDetails.people;
+
     const newCart = [...cart];
     newCart.splice(index, 1);
     setCart(newCart);
+
+    setEvents(events.map(ev => {
+      if (ev.id === itemToRemove.eventId) {
+        return {
+          ...ev,
+          remainingTickets: ev.remainingTickets + placesToAdd
+        };
+      }
+      return ev;
+    }));
   };
 
+  // Gestion du paiement via Stripe
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
@@ -83,7 +121,6 @@ function Events() {
         cartItems: cart,
       });
 
-      // Redirection vers Stripe
       window.location.href = response.data.sessionUrl;
     } catch (err) {
       console.error('Erreur lors du paiement:', err);
@@ -94,13 +131,18 @@ function Events() {
   if (loading) return <div>Chargement en cours...</div>;
   if (error) return <div>Erreur: {error}</div>;
 
+  // Calcul du maximum de quantité possible selon l'offre et les places restantes
+  const maxQuantity = selectedEvent && selectedOffer
+    ? Math.floor(selectedEvent.remainingTickets / OFFERS.find(o => o.name === selectedOffer).people)
+    : 1;
+
   return (
     <div className="events-container">
       <h2>Liste des Événements</h2>
-      
+
       {/* Section Panier */}
       <div className="cart-section">
-        <h3>Votre Panier ({cart.length} articles)</h3>
+        <h3>Votre Panier ({cart.length} article{cart.length > 1 ? 's' : ''})</h3>
         {cart.length > 0 ? (
           <>
             <ul className="cart-items">
@@ -108,9 +150,10 @@ function Events() {
                 <li key={index} className="cart-item">
                   <span>{item.quantity}x {item.title} ({item.offer})</span>
                   <span>{item.total.toFixed(2)} €</span>
-                  <button 
+                  <button
                     onClick={() => removeFromCart(index)}
                     className="remove-btn"
+                    title="Retirer du panier"
                   >
                     ×
                   </button>
@@ -120,7 +163,7 @@ function Events() {
             <div className="cart-total">
               Total: {cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)} €
             </div>
-            <button 
+            <button
               onClick={handleCheckout}
               className="checkout-btn"
             >
@@ -141,10 +184,10 @@ function Events() {
             <div className="event-details">
               <p><strong>Date:</strong> {new Date(event.date).toLocaleDateString()}</p>
               <p><strong>Lieu:</strong> {event.location}</p>
-              <p><strong>Prix:</strong> {event.price} €</p>
+              <p><strong>Prix:</strong> {event.price.toFixed(2)} €</p>
               <p><strong>Places restantes:</strong> {event.remainingTickets}</p>
             </div>
-            <button 
+            <button
               onClick={() => handleBuyClick(event)}
               disabled={event.remainingTickets <= 0}
               className="buy-btn"
@@ -161,11 +204,11 @@ function Events() {
           <div className="purchase-modal">
             <button className="close-modal" onClick={() => setSelectedEvent(null)}>×</button>
             <h3>Choisir une offre pour {selectedEvent.title}</h3>
-            
+
             <div className="form-group">
               <label>Offre :</label>
-              <select 
-                value={selectedOffer} 
+              <select
+                value={selectedOffer}
                 onChange={e => setSelectedOffer(e.target.value)}
                 className="offer-select"
               >
@@ -177,19 +220,24 @@ function Events() {
                 ))}
               </select>
             </div>
-            
+
             <div className="form-group">
               <label>Quantité :</label>
               <input
                 type="number"
                 min="1"
-                max={selectedEvent.remainingTickets}
+                max={maxQuantity}
                 value={quantity}
-                onChange={e => setQuantity(Math.max(1, Number(e.target.value)))}
+                onChange={e => {
+                  let val = Math.max(1, Number(e.target.value));
+                  if (val > maxQuantity) val = maxQuantity;
+                  setQuantity(val);
+                }}
                 className="quantity-input"
               />
+              <small>Max {maxQuantity} {maxQuantity > 1 ? 'offres' : 'offre'} disponibles</small>
             </div>
-            
+
             {selectedOffer && (
               <div className="total-section">
                 <strong>Total :</strong> {(
@@ -199,16 +247,16 @@ function Events() {
                 ).toFixed(2)} €
               </div>
             )}
-            
+
             <div className="modal-actions">
-              <button 
+              <button
                 onClick={handleAddToCart}
-                disabled={!selectedOffer || quantity < 1}
+                disabled={!selectedOffer || quantity < 1 || quantity > maxQuantity}
                 className="add-to-cart-btn"
               >
                 Ajouter au panier
               </button>
-              <button 
+              <button
                 onClick={() => setSelectedEvent(null)}
                 className="cancel-btn"
               >
