@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../events/Events.css';
+import { useCart } from '../../context/CartContext';
 
 const OFFERS = [
   { name: 'Solo', people: 1, multiplier: 1 },
@@ -13,14 +14,10 @@ function Events() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedOffer, setSelectedOffer] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('cart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Récupération des événements au chargement
+  const { cart, addToCart, isEmpty } = useCart();
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -29,27 +26,18 @@ function Events() {
         setEvents(eventsData);
       } catch (err) {
         setError(err.message || 'Erreur inconnue');
-      } finally {
-        setLoading(false);
       }
     };
     fetchEvents();
   }, []);
 
-  // Sauvegarde le panier dans localStorage à chaque modification
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
-
-  // Gère l'ouverture du modal d'achat
   const handleBuyClick = (event) => {
     setSelectedEvent(event);
     setSelectedOffer('');
     setQuantity(1);
   };
 
-  // Ajoute un article au panier et met à jour les places restantes
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedOffer || quantity < 1) return;
 
     const offerDetails = OFFERS.find(o => o.name === selectedOffer);
@@ -62,63 +50,35 @@ function Events() {
       return;
     }
 
-    const total = selectedEvent.price * offerDetails.multiplier * quantity;
-
-    const item = {
-      eventId: selectedEvent.id,
-      title: selectedEvent.title,
-      offer: selectedOffer,
-      people: offerDetails.people,
-      pricePerUnit: selectedEvent.price * offerDetails.multiplier,
-      quantity,
-      total
-    };
-
-    setCart([...cart, item]);
-
-    setEvents(events.map(ev => {
-      if (ev.id === selectedEvent.id) {
-        return {
-          ...ev,
-          remainingTickets: ev.remainingTickets - placesToRemove
-        };
-      }
-      return ev;
-    }));
-
-    setSelectedEvent(null);
+    try {
+      await addToCart(selectedEvent.id, selectedOffer, quantity);
+      setEvents(events.map(ev => {
+        if (ev.id === selectedEvent.id) {
+          return {
+            ...ev,
+            remainingTickets: ev.remainingTickets - placesToRemove
+          };
+        }
+        return ev;
+      }));
+      setSelectedEvent(null);
+    } catch (err) {
+      console.error("Erreur lors de l'ajout au panier :", err);
+      alert('Échec de l’ajout au panier.');
+    }
   };
 
-  // Supprime un article du panier et remet à jour les places restantes
-  const removeFromCart = (index) => {
-    const itemToRemove = cart[index];
-    const offerDetails = OFFERS.find(o => o.name === itemToRemove.offer);
-    if (!offerDetails) return;
-
-    const placesToAdd = itemToRemove.quantity * offerDetails.people;
-
-    const newCart = [...cart];
-    newCart.splice(index, 1);
-    setCart(newCart);
-
-    setEvents(events.map(ev => {
-      if (ev.id === itemToRemove.eventId) {
-        return {
-          ...ev,
-          remainingTickets: ev.remainingTickets + placesToAdd
-        };
-      }
-      return ev;
-    }));
-  };
-
-  // Gestion du paiement via Stripe
   const handleCheckout = async () => {
-    if (cart.length === 0) return;
+    if (isEmpty) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:8080/api/payment/create-checkout-session', {
-        cartItems: cart,
+        cartItems: cart.items,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
 
       window.location.href = response.data.sessionUrl;
@@ -128,40 +88,31 @@ function Events() {
     }
   };
 
-  if (loading) return <div>Chargement en cours...</div>;
-  if (error) return <div>Erreur: {error}</div>;
-
-  // Calcul du maximum de quantité possible selon l'offre et les places restantes
   const maxQuantity = selectedEvent && selectedOffer
     ? Math.floor(selectedEvent.remainingTickets / OFFERS.find(o => o.name === selectedOffer).people)
     : 1;
+
+  if (error) return <div>Erreur: {error}</div>;
 
   return (
     <div className="events-container">
       <h2>Liste des Événements</h2>
 
-      {/* Section Panier */}
+      {/* Panier */}
       <div className="cart-section">
-        <h3>Votre Panier ({cart.length} article{cart.length > 1 ? 's' : ''})</h3>
-        {cart.length > 0 ? (
+        <h3>Votre Panier ({cart.items.length} article{cart.items.length > 1 ? 's' : ''})</h3>
+        {cart.items.length > 0 ? (
           <>
             <ul className="cart-items">
-              {cart.map((item, index) => (
+              {cart.items.map((item, index) => (
                 <li key={index} className="cart-item">
-                  <span>{item.quantity}x {item.title} ({item.offer})</span>
-                  <span>{item.total.toFixed(2)} €</span>
-                  <button
-                    onClick={() => removeFromCart(index)}
-                    className="remove-btn"
-                    title="Retirer du panier"
-                  >
-                    ×
-                  </button>
+                  <span>{item.quantity}x {item.eventTitle} ({item.offerType})</span>
+                  <span>{item.totalPrice.toFixed(2)} €</span>
                 </li>
               ))}
             </ul>
             <div className="cart-total">
-              Total: {cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)} €
+              Total: {cart.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)} €
             </div>
             <button
               onClick={handleCheckout}
@@ -175,7 +126,7 @@ function Events() {
         )}
       </div>
 
-      {/* Liste des événements */}
+      {/* Événements */}
       <div className="event-grid">
         {events.map(event => (
           <div className="event-card" key={event.id}>
@@ -198,7 +149,7 @@ function Events() {
         ))}
       </div>
 
-      {/* Modal de sélection */}
+      {/* Modal */}
       {selectedEvent && (
         <div className="modal-overlay">
           <div className="purchase-modal">
