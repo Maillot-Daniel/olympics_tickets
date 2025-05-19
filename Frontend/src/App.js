@@ -20,6 +20,7 @@ import CreateEventForm from './components/events/CreateEventForm';
 import CartPage from './components/cart/CartPage';
 
 import { CartProvider } from './context/CartContext';
+import Homepage from './components/homepage/HomePage';
 
 
 function App() {
@@ -30,12 +31,15 @@ function App() {
           <Navbar />
           <div className="content">
             <Routes>
-              {/* Page de login accessible à tous */}
-              <Route path="/" element={<LoginPage />} />
-              <Route path="/login" element={<LoginPage />} />
+              {/* Page d'accueil publique */}
+  <Route path="/home" element={<Homepage />} />
 
-              {/* Pages protégées */}
-              <Route path="/profile" element={<RequireUser><ProfilePage /></RequireUser>} />
+  {/* Page de login accessible à tous */}
+  <Route path="/" element={<LoginPage />} />
+  <Route path="/login" element={<LoginPage />} />
+
+  {/* Pages protégées */}
+  <Route path="/profile" element={<RequireUser><ProfilePage /></RequireUser>} />
 
               {/* Routes admin */}
               <Route path="/events" element={<RequireAdmin><EventList /></RequireAdmin>} />

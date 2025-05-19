@@ -10,10 +10,34 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  flex-wrap: wrap; /* Permet au contenu de passer à la ligne */
+  flex-wrap: wrap;
 }
 
-/* Liste de navigation */
+/* Espace réservé pour le contenu */
+.navbar-spacer {
+  height: 80px; /* Hauteur de votre navbar */
+}
+
+/* Logo JO */
+.olympic-logo {
+  width: 100px;
+  height: auto;
+  margin: 1rem;
+}
+
+.olympic-logo-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Navigation principale */
+.nav-container {
+  display: flex;
+  flex: 1;
+  justify-content: flex-start;
+}
+
 .nav-list {
   display: flex;
   list-style: none;
@@ -21,8 +45,6 @@
   padding: 0;
   gap: 1.5rem;
   align-items: center;
-  flex: 1;
-  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
@@ -52,43 +74,67 @@
   color: #e53e3e;
 }
 
-/* Logo JO */
-.olympic-logo {
-  width: 100px;
-  height: auto;
-}
-
-/* Container spécifique au logo */
-.olympic-logo-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+/* Menu mobile */
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column;
-    align-items: center;
     padding: 1rem;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .mobile-menu-button {
+    display: block;
+    order: 2;
+  }
+
+  .olympic-logo-container {
+    order: 1;
+    justify-content: flex-start;
+  }
+
+  .olympic-logo {
+    width: 60px;
+  }
+
+  .nav-container {
+    display: none;
+    width: 100%;
+    order: 3;
+    margin-top: 1rem;
+  }
+
+  .nav-container.open {
+    display: block;
   }
 
   .nav-list {
     flex-direction: column;
     gap: 1rem;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem;
+    align-items: flex-start;
+    padding: 1rem 0;
   }
 
-  .olympic-logo-container {
-    order: -1; /* Met le logo en haut */
-    margin-bottom: 1rem;
-    justify-content: center;
+  .nav-item {
     width: 100%;
   }
 
-  .olympic-logo {
-    width: 60px;
+  .nav-link {
+    display: block;
+    padding: 0.5rem 0;
+  }
+
+  /* Ajustez l'espace réservé en mobile si nécessaire */
+  .navbar-spacer {
+    height: auto; /* S'adapte à la hauteur du menu */
   }
 }

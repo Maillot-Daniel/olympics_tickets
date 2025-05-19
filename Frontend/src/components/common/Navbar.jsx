@@ -9,6 +9,7 @@ function Navbar() {
     isAuthenticated: UsersService.isAuthenticated(),
     isAdmin: UsersService.isAdmin()
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +20,7 @@ function Navbar() {
       });
     };
 
-    const interval = setInterval(checkAuth, 1000); // Vérifie toutes les secondes
+    const interval = setInterval(checkAuth, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -34,62 +35,77 @@ function Navbar() {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <nav className="navbar">
-       {/* Logo des Jeux Olympiques à droite */}
-      <div className="olympic-logo-container">
-        <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
-      </div>
-      <div>
-      <ul className="nav-list">
+    <>
+      <nav className="navbar">
+        <div className="olympic-logo-container">
+          <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
+        </div>
+        
+        {/* Bouton menu mobile */}
+        <button 
+          className="mobile-menu-button"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
 
-        {/* Liens à gauche */}
-        <li className="nav-item">
-          <Link to="/" className="nav-link">Accueil</Link>
-        </li>
+        <div className={`nav-container ${isMobileMenuOpen ? 'open' : ''}`}>
+          <ul className="nav-list">
+            <li className="nav-item">
+              <Link to="/home" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Accueil</Link>
+            </li>
 
-        <li className="nav-item">
-          <Link to="/public-events" className="nav-link">Événements</Link>
-        </li>
+            <li className="nav-item">
+              <Link to="/public-events" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Événements</Link>
+            </li>
 
-        {authState.isAuthenticated && (
-          <>
-            <li className="nav-item">
-              <Link to="/profile" className="nav-link">Profil</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/cart" className="nav-link">Panier</Link>
-            </li>
-          </>
-        )}
+            {authState.isAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link to="/profile" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Profil</Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/cart" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Panier</Link>
+                </li>
+              </>
+            )}
 
-        {authState.isAdmin && (
-          <>
-            <li className="nav-item">
-              <Link to="/events" className="nav-link">Événements Admin</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/admin/user-management" className="nav-link">Utilisateurs Admin</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/create-event" className="nav-link">Créer un événement</Link>
-            </li>
-          </>
-        )}
+            {authState.isAdmin && (
+              <>
+                <li className="nav-item">
+                  <Link to="/events" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Événements Admin</Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/admin/user-management" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Utilisateurs Admin</Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/create-event" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Créer un événement</Link>
+                </li>
+              </>
+            )}
 
-        {authState.isAuthenticated ? (
-          <li className="nav-item">
-            <button onClick={handleLogout} className="nav-link logout-btn">Déconnexion</button>
-          </li>
-        ) : (
-          <li className="nav-item">
-            <Link to="/login" className="nav-link">Connexion</Link>
-          </li>
-        )}
-      </ul>
-</div>
-     
-    </nav>
+            {authState.isAuthenticated ? (
+              <li className="nav-item">
+                <button onClick={handleLogout} className="nav-link logout-btn">Déconnexion</button>
+              </li>
+            ) : (
+              <li className="nav-item">
+                <Link to="/login" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Connexion</Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      </nav>
+      
+      {/* Espace réservé pour éviter que le contenu soit caché */}
+      <div className="navbar-spacer"></div>
+    </>
   );
 }
 

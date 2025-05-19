@@ -38,6 +38,17 @@ function ProfilePage() {
         fetchProfileInfo();
     }, [fetchProfileInfo]);
 
+    // Ajout de l'effet pour redirection automatique après 3 secondes
+    useEffect(() => {
+      if (!isLoading) {
+        const timer = setTimeout(() => {
+          navigate('/home'); // Adaptation possible si la route accueil est différente
+        }, 3000);
+
+        return () => clearTimeout(timer); // Nettoyage au démontage
+      }
+    }, [isLoading, navigate]);
+
     const canEditProfile = () => {
         const currentUserId = localStorage.getItem('userId');
         return currentUserId && currentUserId === profileInfo.id?.toString();
@@ -56,6 +67,7 @@ function ProfilePage() {
                     <span className="status-dot connected"></span>
                     <span>Vous êtes connecté en tant que {profileInfo.role || 'utilisateur'}</span>
                 </div>
+                <p>Vous allez être redirigé vers la page d’accueil dans quelques instants...</p>
             </div>
 
             {/* Informations du profil */}
