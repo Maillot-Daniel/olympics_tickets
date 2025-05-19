@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../events//Events.css';
+import '../events/Events.css';
 
 const OFFERS = [
   { name: 'Solo', people: 1, multiplier: 1 },
