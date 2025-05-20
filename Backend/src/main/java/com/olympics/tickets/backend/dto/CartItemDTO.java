@@ -17,13 +17,15 @@ public class CartItemDTO {
 
     private Long id;
 
+    private Long cartId;
+
     @NotNull(message = "L'ID de l'événement ne peut pas être nul")
     private Long eventId;
 
     private String eventTitle;
 
     @NotNull(message = "Le type d'offre ne peut pas être nul")
-    private Long offerTypeId;  // Changement Integer -> Long pour uniformité
+    private Long offerTypeId;
 
     private String offerTypeName;
 
@@ -42,13 +44,8 @@ public class CartItemDTO {
     }
 
     public boolean isValid() {
-        if (unitPrice == null || quantity == null || quantity <= 0) {
-            return false;
-        }
-
-        if (totalPrice == null) {
-            return false;
-        }
+        if (unitPrice == null || quantity == null || quantity <= 0) return false;
+        if (totalPrice == null) return false;
 
         BigDecimal expectedTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
         return expectedTotal.compareTo(totalPrice) == 0;

@@ -25,7 +25,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -37,10 +36,12 @@ public class SecurityConfig {
     private final OurUserDetailsService ourUserDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-                          JwtAccessDeniedHandler jwtAccessDeniedHandler,
-                          OurUserDetailsService ourUserDetailsService,
-                          JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler,
+            OurUserDetailsService ourUserDetailsService,
+            JwtAuthFilter jwtAuthFilter
+    ) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
         this.ourUserDetailsService = ourUserDetailsService;
@@ -52,7 +53,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                )
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers(
                                 "/auth/**",
                                 "/public/**",
@@ -62,20 +69,23 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // Public access to events
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
-                        .requestMatchers("/api/carts/**").authenticated()
+
+                        // Secure cart access
+                        .requestMatchers("/api/cart/**").authenticated()
+
+                        // Admin access
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // Event management (requires scope)
                         .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
+
+                        // All other requests require authentication
                         .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -130,8 +140,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }

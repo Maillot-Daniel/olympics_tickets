@@ -32,7 +32,7 @@ public class CartService {
             throw new IllegalStateException("Quantité demandée non disponible");
         }
 
-        CartItem item = addToCart(dto, userId);
+        CartItem item = addToCart(dto, userId, event);
 
         event.setRemainingTickets(event.getRemainingTickets() - dto.getQuantity());
         eventRepository.save(event);
@@ -41,13 +41,13 @@ public class CartService {
     }
 
     @Transactional
-    protected CartItem addToCart(CartItemDTO dto, Long userId) {
+    protected CartItem addToCart(CartItemDTO dto, Long userId, Event event) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
                 .orElseGet(() -> createNewCart(userId));
 
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(i -> i.getEvent().getId().equals(dto.getEventId())
-                        && i.getOfferType().getId().equals(dto.getOfferTypeId()))
+                        && i.getOfferType().getId().equals(dto.getOfferTypeId().intValue())) // conversion Long -> Integer
                 .findFirst();
 
         if (existingItem.isPresent()) {
@@ -55,15 +55,19 @@ public class CartService {
             item.setQuantity(item.getQuantity() + dto.getQuantity());
             return cartItemRepository.save(item);
         } else {
-            OfferType offerType = offerTypeRepository.findById(dto.getOfferTypeId())
+            Integer offerTypeIdInt = dto.getOfferTypeId().intValue(); // conversion Long -> Integer
+
+            OfferType offerType = offerTypeRepository.findById(offerTypeIdInt)
                     .orElseThrow(() -> new NotFoundException("Type d'offre non trouvé"));
 
             CartItem item = new CartItem();
             item.setCart(cart);
-            item.setEvent(eventRepository.getReferenceById(dto.getEventId()));
+            item.setEvent(event);
             item.setOfferType(offerType);
             item.setQuantity(dto.getQuantity());
-            item.setUnitPrice(calculatePrice(eventRepository.getReferenceById(dto.getEventId()).getPrice(), offerType.getName()));
+
+            BigDecimal unitPrice = calculatePrice(event.getPrice(), offerType.getName());
+            item.setUnitPrice(unitPrice);
 
             cart.getItems().add(item);
             return cartItemRepository.save(item);
@@ -110,7 +114,15 @@ public class CartService {
         return convertToDTO(cart);
     }
 
-    // Méthode privée pour créer un panier
+    @Transactional
+    public void validateCart(Long userId) {
+        Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
+                .orElseThrow(() -> new NotFoundException("Panier actif non trouvé"));
+
+        cart.setStatus(CartStatus.PAID); // Vérifie que PAID est bien défini dans CartStatus
+        cartRepository.save(cart);
+    }
+
     private Cart createNewCart(Long userId) {
         OurUsers user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
@@ -141,7 +153,7 @@ public class CartService {
                 .id(item.getId())
                 .eventId(item.getEvent().getId())
                 .eventTitle(item.getEvent().getTitle())
-                .offerTypeId(item.getOfferType().getId())
+                .offerTypeId(item.getOfferType().getId().longValue()) // conversion Integer -> Long
                 .offerTypeName(item.getOfferType().getName())
                 .quantity(item.getQuantity())
                 .unitPrice(item.getUnitPrice())

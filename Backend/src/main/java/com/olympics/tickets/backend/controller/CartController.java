@@ -1,93 +1,93 @@
 package com.olympics.tickets.backend.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.http.HttpStatus;
-import lombok.RequiredArgsConstructor;
-
 import com.olympics.tickets.backend.dto.CartDTO;
 import com.olympics.tickets.backend.dto.CartItemDTO;
-import com.olympics.tickets.backend.service.CartService;
 import com.olympics.tickets.backend.entity.OurUsers;
-import jakarta.validation.Valid;
+import com.olympics.tickets.backend.exception.NotFoundException;
+import com.olympics.tickets.backend.repository.UsersRepo;
+import com.olympics.tickets.backend.service.CartService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
 
     private final CartService cartService;
+    private final UsersRepo usersRepo;
 
-    @GetMapping
-    public ResponseEntity<CartDTO> getCurrentUserCart(Authentication authentication) {
-        OurUsers user = (OurUsers) authentication.getPrincipal();
-        CartDTO cart = cartService.getUserCart(user.getId());
-        if (cart == null) {
-            return ResponseEntity.notFound().build();
+    @PostMapping("/items")
+    public ResponseEntity<CartDTO> addItemToCart(@RequestBody CartItemDTO itemDTO, Authentication authentication) {
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            CartDTO updatedCart = cartService.addItemToCart(userId, itemDTO);
+            return ResponseEntity.ok(updatedCart);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'ajout d'un item au panier", e);
+            return ResponseEntity.internalServerError().build();
         }
-        return ResponseEntity.ok(cart);
     }
 
     @GetMapping("/active")
     public ResponseEntity<CartDTO> getActiveCart(Authentication authentication) {
-        OurUsers user = (OurUsers) authentication.getPrincipal();
-        CartDTO activeCart = cartService.findActiveCartByUserId(user.getId());
-
-        if (activeCart == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(activeCart);
-    }
-
-    @PostMapping
-    public ResponseEntity<CartDTO> createNewCart(Authentication authentication) {
-        OurUsers user = (OurUsers) authentication.getPrincipal();
-        CartDTO newCart = cartService.createNewCartAndReturnDTO(user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCart);
-    }
-
-    @PostMapping("/items")
-    public ResponseEntity<CartDTO> addItemToCart(
-            @Valid @RequestBody CartItemDTO itemDTO,
-            Authentication authentication) {
-        OurUsers user = (OurUsers) authentication.getPrincipal();
         try {
-            CartDTO updatedCart = cartService.addItemToCart(user.getId(), itemDTO);
-            return ResponseEntity.ok(updatedCart);
+            Long userId = getUserIdFromAuthentication(authentication);
+            CartDTO cart = cartService.findActiveCartByUserId(userId);
+            if (cart == null) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(cart);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            log.error("Erreur lors de la récupération du panier actif", e);
+            return ResponseEntity.internalServerError().build();
         }
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<CartDTO> getUserCartById(
-            @PathVariable Long userId,
-            Authentication authentication) {
-        OurUsers currentUser = (OurUsers) authentication.getPrincipal();
-        if (!"ADMIN".equals(currentUser.getRole()) && !currentUser.getId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        CartDTO cart = cartService.getUserCart(userId);
-        if (cart == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(cart);
     }
 
     @DeleteMapping("/items/{itemId}")
-    public ResponseEntity<Void> removeItemFromCart(
-            @PathVariable Long itemId,
-            Authentication authentication) {
-        OurUsers user = (OurUsers) authentication.getPrincipal();
-        boolean removed = cartService.removeItemFromCart(user.getId(), itemId);
-        if (removed) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> removeItemFromCart(@PathVariable Long itemId, Authentication authentication) {
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            boolean removed = cartService.removeItemFromCart(userId, itemId);
+            if (removed) {
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Erreur lors de la suppression de l'item du panier", e);
+            return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<Void> validateCart(Authentication authentication) {
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            cartService.validateCart(userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Erreur lors de la validation du panier", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // 🔐 Récupération de l'utilisateur via l'email d'authentification
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new NotFoundException("Utilisateur non authentifié");
+        }
+
+        String email = authentication.getName();
+        log.debug("Récupération de l'utilisateur avec email: {}", email);
+
+        OurUsers user = usersRepo.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Utilisateur non trouvé avec email: " + email));
+
+        return user.getId();
     }
 }

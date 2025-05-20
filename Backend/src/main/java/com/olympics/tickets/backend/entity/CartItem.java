@@ -1,13 +1,15 @@
 package com.olympics.tickets.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "cart_item") // Spécifie explicitement le nom de la table
-@Data
+@Table(name = "cart_item")
+@Getter
+@Setter
 public class CartItem {
 
     @Id
@@ -15,29 +17,32 @@ public class CartItem {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "cart_id") // Correspond à la colonne en base
+    @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "event_id") // Correspond à la colonne en base
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
     @ManyToOne
-    @JoinColumn(name = "user_id") // Correspond à la colonne en base
+    @JoinColumn(name = "user_id", nullable = false)
     private OurUsers user;
 
     @ManyToOne
-    @JoinColumn(name = "offer_type", referencedColumnName = "id") // Relation avec offer_types
-    private OfferType offerType; // Changé de String à OfferType
+    @JoinColumn(name = "offer_type", referencedColumnName = "id", nullable = false)
+    private OfferType offerType;
 
+    @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "unit_price", precision = 19, scale = 4) // Nom exact de la colonne
+    @Column(name = "unit_price", precision = 19, scale = 4, nullable = false)
     private BigDecimal unitPrice;
 
-    // Champ calculé (optionnel - si vous voulez le gérer en Java plutôt qu'en base)
-    @Transient // Indique que ce champ n'est pas persisté
+    @Transient
     public BigDecimal getTotalPrice() {
-        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+        if (unitPrice != null && quantity > 0) {
+            return unitPrice.multiply(BigDecimal.valueOf(quantity));
+        }
+        return BigDecimal.ZERO;
     }
 }

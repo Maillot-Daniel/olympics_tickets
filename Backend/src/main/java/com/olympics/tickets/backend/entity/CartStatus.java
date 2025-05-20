@@ -2,6 +2,7 @@ package com.olympics.tickets.backend.entity;
 
 public enum CartStatus {
     ACTIVE,
-    ABANDONED,
-    COMPLETED
+    PAID,       // <-- ajoute cette ligne si tu veux ce statut
+    COMPLETED,
+    CANCELLED
 }
