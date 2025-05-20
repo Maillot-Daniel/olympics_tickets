@@ -23,12 +23,12 @@ public class CartItemDTO {
     private String eventTitle;
 
     @NotNull(message = "Le type d'offre ne peut pas être nul")
-    private Integer offerTypeId;
+    private Long offerTypeId;  // Changement Integer -> Long pour uniformité
 
     private String offerTypeName;
 
-    @Min(value = 1, message = "La quantité doit être au moins 1")
     @NotNull(message = "La quantité ne peut pas être nulle")
+    @Min(value = 1, message = "La quantité doit être au moins 1")
     private Integer quantity;
 
     @NotNull(message = "Le prix unitaire ne peut pas être nul")

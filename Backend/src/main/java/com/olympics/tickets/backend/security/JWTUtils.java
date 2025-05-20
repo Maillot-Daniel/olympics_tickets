@@ -1,4 +1,4 @@
-package com.olympics.tickets.backend.config;
+package com.olympics.tickets.backend.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

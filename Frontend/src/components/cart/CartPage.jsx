@@ -9,11 +9,22 @@ function CartPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
+  // Formatage sécurisé des prix
+  const formatPrice = (value) =>
+    typeof value === 'number' ? value.toFixed(2) : 'N/A';
+
+  // Calcul du total général
+  const getTotal = () =>
+    cart.reduce(
+      (sum, item) => sum + (typeof item.total_price === 'number' ? item.total_price : 0),
+      0
+    ).toFixed(2);
+
   // Récupération des données utilisateur et panier
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
-    
+
     if (!token || !userId) {
       setLoading(false);
       return;
@@ -21,14 +32,12 @@ function CartPage() {
 
     setUser({ token, userId });
 
-    // Récupérer le panier depuis l'API plutôt que localStorage
     const fetchCart = async () => {
       try {
-       const res = await axios.get(`http://localhost:8080/api/carts/active`, {
-  headers: { Authorization: `Bearer ${token}` }
-});
-        
-        // Vérifier si le panier est actif selon votre MCD
+        const res = await axios.get(`http://localhost:8080/api/cart/active`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         if (res.data.status === 'ACTIVE') {
           setCart(res.data.items || []);
         }
@@ -45,10 +54,10 @@ function CartPage() {
   const removeItem = async (itemId) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/cart-items/${itemId}`,
+        `http://localhost:8080/api/cart/items/${itemId}`,
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      
+
       if (response.status === 200) {
         setCart(cart.filter(item => item.id !== itemId));
       }
@@ -56,8 +65,6 @@ function CartPage() {
       console.error("Erreur lors de la suppression", error);
     }
   };
-
-  const getTotal = () => cart.reduce((sum, item) => sum + (item.total_price || 0), 0).toFixed(2);
 
   const handleCheckout = async () => {
     if (!user) {
@@ -67,17 +74,16 @@ function CartPage() {
 
     try {
       const stripe = await stripePromise;
-      
-      // Formatage des données selon votre MCD
+
       const checkoutData = {
-        cartId: cart.find(item => item.cart_id)?.cart_id, // Selon votre MCD
+        cartId: cart.find(item => item.cart_id)?.cart_id || null,
         userId: user.userId,
         items: cart.map(item => ({
           event_id: item.event_id,
           offer_type: item.offer_type,
           quantity: item.quantity,
-          unit_price: item.unit_price
-        }))
+          unit_price: item.unit_price,
+        })),
       };
 
       const response = await axios.post(
@@ -86,9 +92,8 @@ function CartPage() {
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
-      // Redirection vers Stripe
       const { error } = await stripe.redirectToCheckout({
-        sessionId: response.data.sessionId
+        sessionId: response.data.sessionId,
       });
 
       if (error) throw error;
@@ -116,8 +121,8 @@ function CartPage() {
                 <h4>{item.event_title}</h4>
                 <p>Type d'offre: {item.offer_type_name}</p>
                 <p>Quantité: {item.quantity}</p>
-                <p>Prix unitaire: €{item.unit_price}</p>
-                <p>Total: €{item.total_price}</p>
+                <p>Prix unitaire: €{formatPrice(item.unit_price)}</p>
+                <p>Total: €{formatPrice(item.total_price)}</p>
                 <button onClick={() => removeItem(item.id)}>Retirer</button>
               </div>
             ))}

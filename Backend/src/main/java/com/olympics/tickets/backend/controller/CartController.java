@@ -3,14 +3,13 @@ package com.olympics.tickets.backend.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 
 import com.olympics.tickets.backend.dto.CartDTO;
 import com.olympics.tickets.backend.dto.CartItemDTO;
 import com.olympics.tickets.backend.service.CartService;
 import com.olympics.tickets.backend.entity.OurUsers;
-import com.olympics.tickets.backend.entity.Cart;
-import com.olympics.tickets.backend.security.JwtUtils;
 import jakarta.validation.Valid;
 
 @RestController
@@ -19,22 +18,21 @@ import jakarta.validation.Valid;
 public class CartController {
 
     private final CartService cartService;
-    private final JwtUtils jwtTokenUtil;
 
-    // Récupère le panier de l'utilisateur connecté
     @GetMapping
     public ResponseEntity<CartDTO> getCurrentUserCart(Authentication authentication) {
         OurUsers user = (OurUsers) authentication.getPrincipal();
-        return ResponseEntity.ok(cartService.getUserCart(user.getId()));
+        CartDTO cart = cartService.getUserCart(user.getId());
+        if (cart == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(cart);
     }
 
     @GetMapping("/active")
-    public ResponseEntity<CartDTO> getActiveCart(@RequestHeader("Authorization") String token) {
-        // 1. Valider le token et extraire userId
-        Long userId = jwtTokenUtil.getUserIdFromToken(token.replace("Bearer ", ""));
-
-        // 2. Chercher le panier actif
-        CartDTO activeCart = cartService.findActiveCartByUserId(userId);
+    public ResponseEntity<CartDTO> getActiveCart(Authentication authentication) {
+        OurUsers user = (OurUsers) authentication.getPrincipal();
+        CartDTO activeCart = cartService.findActiveCartByUserId(user.getId());
 
         if (activeCart == null) {
             return ResponseEntity.notFound().build();
@@ -43,36 +41,53 @@ public class CartController {
         return ResponseEntity.ok(activeCart);
     }
 
-    // Ajoute un item au panier de l'utilisateur connecté
+    @PostMapping
+    public ResponseEntity<CartDTO> createNewCart(Authentication authentication) {
+        OurUsers user = (OurUsers) authentication.getPrincipal();
+        CartDTO newCart = cartService.createNewCartAndReturnDTO(user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(newCart);
+    }
+
     @PostMapping("/items")
     public ResponseEntity<CartDTO> addItemToCart(
             @Valid @RequestBody CartItemDTO itemDTO,
             Authentication authentication) {
         OurUsers user = (OurUsers) authentication.getPrincipal();
-        return ResponseEntity.ok(cartService.addItemToCart(user.getId(), itemDTO));
+        try {
+            CartDTO updatedCart = cartService.addItemToCart(user.getId(), itemDTO);
+            return ResponseEntity.ok(updatedCart);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
-    // Endpoint admin pour récupérer le panier d'un utilisateur spécifique
     @GetMapping("/user/{userId}")
     public ResponseEntity<CartDTO> getUserCartById(
             @PathVariable Long userId,
             Authentication authentication) {
-        // Vérifier que l'utilisateur est admin ou accède à son propre panier
         OurUsers currentUser = (OurUsers) authentication.getPrincipal();
-        if (!currentUser.getRole().equals("ADMIN") && !currentUser.getId().equals(userId)) {
-            return ResponseEntity.status(403).build();
+        if (!"ADMIN".equals(currentUser.getRole()) && !currentUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        return ResponseEntity.ok(cartService.getUserCart(userId));
+        CartDTO cart = cartService.getUserCart(userId);
+        if (cart == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(cart);
     }
 
-    // Supprime un item du panier
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<Void> removeItemFromCart(
             @PathVariable Long itemId,
             Authentication authentication) {
         OurUsers user = (OurUsers) authentication.getPrincipal();
-        cartService.removeItemFromCart(user.getId(), itemId);
-        return ResponseEntity.noContent().build();
+        boolean removed = cartService.removeItemFromCart(user.getId(), itemId);
+        if (removed) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

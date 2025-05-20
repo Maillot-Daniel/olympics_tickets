@@ -9,13 +9,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig {
 
     @Bean
-    public WebMvcConfigurer webMvcConfigurer(){
+    public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")  // <-- ici corrigé
-                        .allowedOrigins("*");
+                registry.addMapping("/api/**")  // Limité aux endpoints API
+                        .allowedOrigins(
+                                "http://localhost:3000",  // Dev
+                                "https://votre-domaine-production.com"  // Prod
+                        )
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("Authorization", "Content-Type", "X-Requested-With")
+                        .exposedHeaders("Authorization", "X-Refresh-Token")
+                        .allowCredentials(true)
+                        .maxAge(3600);  // 1 heure
             }
         };
     }

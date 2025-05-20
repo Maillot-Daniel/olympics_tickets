@@ -1,4 +1,4 @@
-package com.olympics.tickets.backend.config;
+package com.olympics.tickets.backend.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
