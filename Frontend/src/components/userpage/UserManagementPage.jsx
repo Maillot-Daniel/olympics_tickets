@@ -9,14 +9,18 @@ function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ fetchUsers dans useCallback pour éviter les re-créations à chaque rendu
+  const isAdmin = UsersService.isAdmin(); // ✅ Stocké une fois ici
+
+  // Fonction pour récupérer tous les utilisateurs
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const usersData = await UsersService.getAllUsers();
+      console.log("Users fetched:", usersData);
       setUsers(usersData.ourUsersList || []);
     } catch (err) {
+      console.error("Fetch users error:", err);
       setError(err.message || "Erreur lors de la récupération des utilisateurs");
       if (err.response?.status === 401) {
         UsersService.logout();
@@ -27,6 +31,7 @@ function UserManagementPage() {
     }
   }, [navigate]);
 
+  // Vérification des accès au chargement du composant
   useEffect(() => {
     const checkAccess = async () => {
       if (!UsersService.isAuthenticated()) {
@@ -34,14 +39,14 @@ function UserManagementPage() {
         return;
       }
 
-      if (!UsersService.isAdmin()) {
+      if (!isAdmin) {
         setError("Accès réservé aux administrateurs");
         setLoading(false);
         return;
       }
 
       try {
-        await UsersService.getYourProfile();
+        await UsersService.getProfile(); // ✅ Appelle correcte
         fetchUsers();
       } catch (err) {
         if (err.response?.status === 403) {
@@ -57,8 +62,9 @@ function UserManagementPage() {
     };
 
     checkAccess();
-  }, [fetchUsers, navigate]); // ✅ dépendances correctes
+  }, [fetchUsers, navigate, isAdmin]);
 
+  // Suppression d'un utilisateur
   const deleteUser = async (userId) => {
     try {
       const confirmDelete = window.confirm(
@@ -69,9 +75,7 @@ function UserManagementPage() {
         fetchUsers();
       }
     } catch (error) {
-      setError(
-        error.message || "Erreur lors de la suppression de l'utilisateur"
-      );
+      setError(error.message || "Erreur lors de la suppression de l'utilisateur");
       console.error("Error deleting user:", error);
     }
   };
@@ -131,12 +135,12 @@ function UserManagementPage() {
                       type="button"
                       className="delete-button"
                       onClick={() => deleteUser(user.id || user._id)}
-                      disabled={!UsersService.isAdmin()}
+                      disabled={!isAdmin}
                     >
                       Supprimer
                     </button>
                     <Link
-                      to={`/update-user/${user.id || user._id}`}
+                      to={`/admin/update-user/${user.id || user._id}`}
                       className="update-button"
                     >
                       Modifier

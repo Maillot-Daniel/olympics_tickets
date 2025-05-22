@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext'; // Assure-toi du bon chemin
 import { useNavigate } from 'react-router-dom';
+import "./Events.css";
 
 // Offres avec IDs pour correspondance backend
 const OFFERS = [

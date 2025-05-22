@@ -1,113 +1,12 @@
-/* Base Styles */
-.event-form-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+input, textarea {
+  border-radius: 15px;
+  box-shadow: 0 8px 15px rgba(37, 117, 252, 0.3);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  padding: 18px 20px;
 }
-
-.event-form {
-  background: #fff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.form-title {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-/* Form Elements */
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #34495e;
-  font-size: 0.95rem;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-.form-textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-/* Form Layout */
-.form-row {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.form-row .form-group {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-/* Button Styles */
-.submit-button {
-  width: 100%;
-  padding: 1rem;
-  background-color: #3498db;
-  color: white;
+input:focus, textarea:focus {
+  box-shadow: 0 12px 20px rgba(255, 111, 97, 0.5);
+  transform: translateY(-3px);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-}
-
-.submit-button:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .form-row {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .event-form {
-    padding: 1.5rem;
-  }
-  
-  .form-title {
-    font-size: 1.5rem;
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.event-form {
-  animation: fadeIn 0.5s ease-out forwards;
+  outline: none;
 }

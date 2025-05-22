@@ -16,23 +16,32 @@ import EventList from './components/events/EventList';
 import CreateEventForm from './components/events/CreateEventForm';
 import CartPage from './components/cart/CartPage';
 import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
+import { AuthProvider } from './context/AuthContext';
 import GuestOnlyRoute from './components/GuestOnlyRoute/GuestOnlyRoute';
-
 import DebugAuth from './context/DebugAuth';
-
+import background from './assets/images/Jeux_2024.jpg';
+import "./App.css";
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider> {/* Wrap everything with AuthProvider */}
+      <AuthProvider>
         <CartProvider>
-          <div className="App">
+          <div
+            className="App"
+            style={{
+              backgroundImage: `url(${background})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              minHeight: '100vh',
+              backgroundRepeat: 'no-repeat',
+              backgroundAttachment: 'fixed',
+            }}
+          >
             <Navbar />
-            <DebugAuth /> {/* Ajouté ici */}
-            <div className="content">
+            <DebugAuth />
 
-              
+            <div className="content">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<HomePage />} />
@@ -107,7 +116,6 @@ function App() {
                       <UserManagementPage />
                     </RequireAdmin>
                   }
-
                 />
                 <Route
                   path="/admin/update-user/:userId"
@@ -117,8 +125,6 @@ function App() {
                     </RequireAdmin>
                   }
                 />
-
-
                 <Route
                   path="/admin/create-event"
                   element={
@@ -128,10 +134,11 @@ function App() {
                   }
                 />
 
-                {/* Catch-all route */}
+                {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </div>
+
             <FooterComponent />
           </div>
         </CartProvider>
