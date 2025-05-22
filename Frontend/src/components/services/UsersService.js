@@ -2,7 +2,7 @@
 import axios from "axios";
 
 class UsersService {
-  static BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+  static BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api/users";
   static TOKEN_KEY = "olympics_auth_token";
   static ROLE_KEY = "olympics_user_role";
   static USER_ID_KEY = "olympics_user_id";
@@ -57,10 +57,6 @@ class UsersService {
     window.dispatchEvent(new CustomEvent("authChanged"));
   }
 
-  static logout() {
-    this.clearAuth();
-  }
-
   static isAuthenticated() {
     return !!this.getToken();
   }
@@ -74,18 +70,20 @@ class UsersService {
     return localStorage.getItem(this.USER_ID_KEY);
   }
 
+  // Authentification
   static async login(email, password) {
-  try {
-    const response = await this.apiClient.post("/auth/login", { email, password });
-    if (response.data.token) {
-      this.setAuthData(response.data.token, response.data.role, response.data.userId);
+    try {
+      const response = await this.apiClient.post("/auth/login", { email, password });
+      if (response.data.token) {
+        this.setAuthData(response.data.token, response.data.role, response.data.ourUsers?.id);
+      }
+      return response.data;
+    } catch (error) {
+      throw this.normalizeError(error, "Échec de la connexion");
     }
-    return response.data;
-  } catch (error) {
-    throw this.normalizeError(error, "Échec de la connexion");
   }
-}
 
+  // Inscription
   static async register(registrationData) {
     try {
       const response = await this.apiClient.post("/auth/register", registrationData);
@@ -95,6 +93,36 @@ class UsersService {
     }
   }
 
+  // Récupérer le profil utilisateur connecté
+  static async getProfile() {
+    try {
+      const response = await this.apiClient.get("/adminuser/get-profile");
+      return response.data;
+    } catch (error) {
+      throw this.normalizeError(error, "Échec de la récupération du profil");
+    }
+  }
+
+  static async deleteUser(userId) {
+  try {
+    const response = await this.apiClient.delete(`/admin/delete/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw this.normalizeError(error, "Erreur lors de la suppression de l'utilisateur");
+  }
+}
+
+  // Mot de passe oublié - envoyer mail réinitialisation
+  static async requestPasswordReset(email) {
+    try {
+      const response = await this.apiClient.post("/auth/password-reset-request", { email });
+      return response.data;
+    } catch (error) {
+      throw this.normalizeError(error, "Erreur lors de la demande de réinitialisation");
+    }
+  }
+
+  // Normalisation des erreurs pour UI
   static normalizeError(error, customMessage = "") {
     const normalizedError = new Error(customMessage || error.message);
     if (error.response) {

@@ -21,6 +21,7 @@ import GuestOnlyRoute from './components/GuestOnlyRoute/GuestOnlyRoute';
 
 import DebugAuth from './context/DebugAuth';
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -106,6 +107,7 @@ function App() {
                       <UserManagementPage />
                     </RequireAdmin>
                   }
+
                 />
                 <Route
                   path="/admin/update-user/:userId"
@@ -115,6 +117,8 @@ function App() {
                     </RequireAdmin>
                   }
                 />
+
+
                 <Route
                   path="/admin/create-event"
                   element={

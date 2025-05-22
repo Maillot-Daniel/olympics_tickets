@@ -66,7 +66,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                         // Accès authentifié et admin
                         .requestMatchers("/api/cart/**").authenticated()
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // Routes d'édition d'événements : basées sur SCOPE_EVENTS:WRITE
+                        .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
+                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
+
+
                         .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")

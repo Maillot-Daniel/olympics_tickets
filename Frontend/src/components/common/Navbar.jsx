@@ -10,12 +10,11 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Debug: Affiche les changements d'état d'authentification
   useEffect(() => {
     console.log("Navbar - Auth state changed:", { user, isAuthenticated });
   }, [user, isAuthenticated]);
 
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role?.toLowerCase() === "admin"; // insensitive case
 
   const handleLogout = async () => {
     if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {
@@ -33,7 +32,6 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
-  // Si le contexte est en cours de chargement, afficher une navbar minimale
   if (isLoading) {
     return (
       <nav className="navbar loading" aria-label="Menu principal en chargement">
@@ -54,9 +52,10 @@ function Navbar() {
           <Link to="/" onClick={closeMobileMenu} aria-label="Accueil">
             <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
           </Link>
+
           {isAuthenticated && user && (
-            <div className="user-badge">
-              <span className="user-email">{user.email}</span>
+            <div className="user-badge" aria-label="Informations utilisateur">
+              <span className="user-email">{user.email || "Utilisateur"}</span>
               {isAdmin && <span className="user-role">(Admin)</span>}
             </div>
           )}
@@ -89,20 +88,16 @@ function Navbar() {
 
             {isAuthenticated ? (
               <>
-                <li className="nav-item">
-                  <Link to="/profile" className="nav-link" onClick={closeMobileMenu}>
-                    Mon Profil
-                  </Link>
-                </li>
+                
                 <li className="nav-item">
                   <Link to="/cart" className="nav-link" onClick={closeMobileMenu}>
                     Panier
                   </Link>
                 </li>
-                
+
                 {isAdmin && (
                   <>
-                    <li className="nav-item admin-divider">
+                    <li className="nav-item admin-divider" aria-hidden="true">
                       <span className="admin-label">Administration</span>
                     </li>
                     <li className="nav-item">
