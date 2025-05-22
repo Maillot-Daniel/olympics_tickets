@@ -1,170 +1,93 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { loadStripe } from '@stripe/stripe-js';
-import './CartPage.css';
-
-const stripePromise = loadStripe('pk_test_votreClePublique'); // remplace par ta vraie clé
+import React, { useState } from 'react';
+import { useCart } from '../../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 function CartPage() {
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const { items, removeItem, clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const formatPrice = (value) =>
-    typeof value === 'number' ? value.toFixed(2) : 'N/A';
+  const totalPrice = items.reduce((acc, item) => acc + item.priceUnit * item.quantity, 0);
 
-  const getTotal = () =>
-    cart.reduce((sum, item) => sum + (item.totalPrice ? Number(item.totalPrice) : 0), 0).toFixed(2);
-
-  useEffect(() => {
+  const handleValidateOrder = async () => {
     const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-
-    if (!token || !userId) {
-      console.warn("Token ou userId manquant");
+    if (!token) {
+      alert("Veuillez vous connecter");
+      navigate('/login');
+      return;
+    }
+    setLoading(true);
+    try {
+     await fetch("http://localhost:8080/api/cart/validate", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer " + token,
+    "Content-Type": "application/json"
+  }
+});
+      alert("Commande validée !");
+      clearCart();
+    } catch (error) {
+      alert("Erreur lors de la validation du panier");
+      console.error(error);
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    setUser({ token, userId });
-
-    const fetchCart = async () => {
-      try {
-        const res = await axios.get('http://localhost:8080/api/cart/active', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (res.status === 200 && res.data.status === 'ACTIVE') {
-          setCart(res.data.items || []);
-        } else {
-          console.warn("Panier inactif ou vide", res.data);
-        }
-      } catch (err) {
-        console.error("Erreur lors du chargement du panier", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCart();
-  }, []);
-
-  const removeItem = async (itemId) => {
-    try {
-      const response = await axios.delete(
-        `http://localhost:8080/api/cart/items/${itemId}`,
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-
-      if (response.status === 204) {
-        setCart(cart.filter(item => item.id !== itemId));
-      }
-    } catch (error) {
-      console.error("Erreur lors de la suppression de l'article", error);
     }
   };
 
-  const clearCart = async () => {
-    if (!window.confirm("Voulez-vous vraiment vider le panier ?")) return;
-
-    const itemIds = cart.map(item => item.id);
-
-    for (let itemId of itemIds) {
-      await removeItem(itemId);
+  const handleContinueShopping = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+    } else {
+      navigate('/public-events');
     }
   };
 
-  const handleCheckout = async () => {
-    if (!user) {
-      alert('Veuillez vous connecter avant de payer');
-      return;
-    }
-
-    if (!window.confirm("Confirmez-vous le paiement de votre commande ?")) return;
-
-    const cartId = cart.length > 0 ? cart[0].cartId : null;
-
-    if (!cartId) {
-      alert("Impossible d'identifier le panier.");
-      return;
-    }
-
-    try {
-      const stripe = await stripePromise;
-
-      const checkoutData = {
-        cartId,
-        userId: user.userId,
-        cartItems: cart.map(item => ({
-          eventId: item.eventId,
-          offerTypeName: item.offerTypeName,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-        })),
-      };
-
-      const response = await axios.post(
-        'http://localhost:8080/api/payment/create-checkout-session',
-        checkoutData,
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-
-      const sessionId = response.data.sessionId;
-
-      if (!sessionId) throw new Error("Aucune sessionId retournée par le backend");
-
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-
-      if (error) {
-        console.error("Stripe checkout error", error);
-        alert("Erreur lors de la redirection vers Stripe");
-      }
-
-    } catch (error) {
-      console.error("Erreur de paiement:", error.response?.data || error.message);
-      alert(error.response?.data?.message || 'Erreur lors du paiement');
+  const handleClearCart = () => {
+    if (window.confirm("Voulez-vous vraiment vider le panier ?")) {
+      clearCart();
     }
   };
 
-  if (loading) return <div>Chargement du panier...</div>;
-  if (!user) return <div>Veuillez vous connecter pour accéder à votre panier</div>;
+  if (items.length === 0) {
+    return (
+      <div>
+        <h2>Votre panier est vide.</h2>
+        <button onClick={handleContinueShopping}>
+          Continuer mes achats
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="cart-container">
-      <h2>Votre Panier</h2>
-
-      {cart.length === 0 ? (
-        <p>Votre panier est vide</p>
-      ) : (
-        <>
-          <div className="cart-items">
-            {cart.map((item) => (
-              <div key={item.id} className="cart-item">
-                <h4>{item.eventTitle}</h4>
-                <p>Type d'offre : {item.offerTypeName}</p>
-                <p>Quantité : {item.quantity}</p>
-                <p>Prix unitaire : €{formatPrice(item.unitPrice)}</p>
-                <p>Total : €{formatPrice(item.totalPrice)}</p>
-                <button onClick={() => removeItem(item.id)}>Retirer</button>
-              </div>
-            ))}
-          </div>
-
-          <div className="cart-total">
-            <h3>Total général : €{getTotal()}</h3>
-          </div>
-
-          <div className="cart-actions">
-            <button onClick={handleCheckout} className="checkout-button">
-              Procéder au paiement
+    <div>
+      <h2>Votre panier</h2>
+      <ul>
+        {items.map((item, idx) => (
+          <li key={item.id || idx} style={{ marginBottom: '1em' }}>
+            <strong>{item.eventTitle}</strong> - {item.offerName} - {item.quantity} x {item.priceUnit.toFixed(2)} €
+            <button 
+              onClick={() => removeItem(item.eventId, item.offerTypeId)} 
+              style={{ marginLeft: '1em', color: 'red' }}
+              disabled={loading}
+            >
+              Supprimer
             </button>
-            <button onClick={clearCart} className="clear-button">
-              Vider le panier
-            </button>
-          </div>
-        </>
-      )}
+          </li>
+        ))}
+      </ul>
+      <p><strong>Total : {totalPrice.toFixed(2)} €</strong></p>
+      <button onClick={handleValidateOrder} disabled={loading}>
+        {loading ? 'Validation...' : 'Valider la commande'}
+      </button>
+      <button onClick={handleContinueShopping} style={{ marginLeft: '1em' }} disabled={loading}>
+        Continuer mes achats
+      </button>
+      <button onClick={handleClearCart} style={{ marginLeft: '1em', color: 'orange' }} disabled={loading}>
+        Vider le panier
+      </button>
     </div>
   );
 }

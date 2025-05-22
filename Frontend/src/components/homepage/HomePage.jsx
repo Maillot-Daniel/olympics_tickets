@@ -6,29 +6,44 @@ import '../homepage/HomePage.css';
 const HomePage = () => {
   const navigate = useNavigate();
   const [lastThreeEvents, setLastThreeEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchLastThreeEvents();
   }, []);
 
   const fetchLastThreeEvents = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.get('http://localhost:8080/api/events');
       const events = response.data.content || response.data;
-      const sorted = events.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Trier les événements par date décroissante (plus récent en premier)
+      const sorted = events
+        .filter(event => event.date && !isNaN(new Date(event.date))) // filtre dates valides
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Garder seulement les 3 derniers
       setLastThreeEvents(sorted.slice(0, 3));
-    } catch (error) {
-      console.error("Erreur lors du chargement des événements récents:", error);
+    } catch (err) {
+      console.error("Erreur lors du chargement des événements récents :", err);
+      setError("Impossible de charger les événements. Veuillez réessayer plus tard.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEventClick = (id) => {
-    navigate(`/events?id=${id}`);
-  };
+  
+  // Navigation générique vers la page events (sans ID)
+  const handleReserveClick = () => navigate('/public-events');
+const handleLearnMore = () => navigate('/public-events');
+const handleAdventureReserve = () => navigate('/public-events');
 
-  const handleReserveClick = () => navigate('/events');
-  const handleLearnMore = () => navigate('/events');
-  const handleAdventureReserve = () => navigate('/events');
+const handleEventClick = (id) => {
+  navigate(`/public-events?id=${id}`);
+};
 
   return (
     <div className="homepage">
@@ -65,21 +80,20 @@ const HomePage = () => {
         <p className="section-subtitle">Découvrez les moments les plus attendus des Jeux Olympiques 2024</p>
 
         <div className="events-grid">
-          {lastThreeEvents.length > 0 ? (
-            lastThreeEvents.map(event => (
-              <div 
-                key={event.id}
-                className="event-card"
-                onClick={() => handleEventClick(event.id)}
-                style={{ cursor: "pointer" }}
-              >
-                <h3>{event.title}</h3>
-                <p>{event.description}</p>
-              </div>
-            ))
-          ) : (
-            <p>Chargement des événements...</p>
-          )}
+          {loading && <p>Chargement des événements...</p>}
+          {error && <p className="error-message">{error}</p>}
+          {!loading && !error && lastThreeEvents.length === 0 && <p>Aucun événement disponible.</p>}
+          {!loading && !error && lastThreeEvents.map(event => (
+            <div 
+              key={event.id}
+              className="event-card"
+              onClick={() => handleEventClick(event.id)}
+              style={{ cursor: "pointer" }}
+            >
+              <h3>{event.title}</h3>
+              <p>{event.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 

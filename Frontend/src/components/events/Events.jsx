@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useCart } from '../../context/CartContext'; // Assure-toi du bon chemin
+import { useNavigate } from 'react-router-dom';
 
-// Ajout des IDs pour correspondre aux offerTypeId attendus côté backend
+// Offres avec IDs pour correspondance backend
 const OFFERS = [
   { id: 1, name: 'Solo', people: 1, multiplier: 1 },
   { id: 2, name: 'Duo', people: 2, multiplier: 1.9 },
@@ -11,10 +13,13 @@ const OFFERS = [
 function Events() {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedOffer, setSelectedOffer] = useState('');
+  const [selectedOfferId, setSelectedOfferId] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { addItem } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchEvents() {
@@ -31,20 +36,28 @@ function Events() {
     fetchEvents();
   }, []);
 
-  const handleAddToCart = async () => {
-    if (!selectedOffer || quantity < 1) {
-      alert("Choisissez une offre et une quantité valide");
+  const formatter = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  });
+
+  const handleAddToCart = () => {
+    if (!selectedOfferId) {
+      alert("Choisissez une offre");
       return;
     }
-
-    const offer = OFFERS.find(o => o.name === selectedOffer);
-    if (!offer) {
-      alert("Offre invalide");
+    if (quantity < 1 || !Number.isInteger(quantity)) {
+      alert("Veuillez saisir une quantité valide (entier >= 1)");
       return;
     }
-
     if (!selectedEvent) {
       alert("Aucun événement sélectionné");
+      return;
+    }
+
+    const offer = OFFERS.find(o => o.id === parseInt(selectedOfferId));
+    if (!offer) {
+      alert("Offre invalide");
       return;
     }
 
@@ -54,25 +67,25 @@ function Events() {
       return;
     }
 
-    // Construction de l'objet avec les clés camelCase attendues par le backend
+    // Ajout dans le panier via le contexte
     const itemToAdd = {
       eventId: selectedEvent.id,
+      eventTitle: selectedEvent.title,
       offerTypeId: offer.id,
-      quantity: quantity
+      offerName: offer.name,
+      quantity: quantity,
+      priceUnit: selectedEvent.price * offer.multiplier
     };
 
-    try {
-      await axios.post('http://localhost:8080/api/cart/items', itemToAdd, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert("Ajouté au panier !");
-      setSelectedEvent(null);
-      setSelectedOffer('');
-      setQuantity(1);
-    } catch (err) {
-      alert("Erreur lors de l'ajout au panier");
-      console.error(err);
-    }
+    addItem(itemToAdd);
+
+    alert("Ajouté au panier !");
+    setSelectedEvent(null);
+    setSelectedOfferId('');
+    setQuantity(1);
+
+    // Redirection vers la page panier
+    navigate('/cart');
   };
 
   if (loading) return <div>Chargement...</div>;
@@ -83,9 +96,9 @@ function Events() {
       <h2>Liste des événements</h2>
       <ul>
         {events.map(event => (
-          <li key={event.id}>
-            <strong>{event.title}</strong> - {event.price} €
-            <button onClick={() => setSelectedEvent(event)}>Acheter</button>
+          <li key={event.id} style={{ marginBottom: '1em' }}>
+            <strong>{event.title}</strong> - {formatter.format(event.price)}
+            <button style={{ marginLeft: '1em' }} onClick={() => setSelectedEvent(event)}>Acheter</button>
           </li>
         ))}
       </ul>
@@ -96,13 +109,13 @@ function Events() {
           <label>
             Offre : 
             <select
-              value={selectedOffer}
-              onChange={e => setSelectedOffer(e.target.value)}
+              value={selectedOfferId}
+              onChange={e => setSelectedOfferId(e.target.value)}
             >
               <option value="">-- Choisir une offre --</option>
               {OFFERS.map(offer => (
-                <option key={offer.id} value={offer.name}>
-                  {offer.name} ({offer.people} pers.) - {(selectedEvent.price * offer.multiplier).toFixed(2)} €
+                <option key={offer.id} value={offer.id}>
+                  {offer.name} ({offer.people} pers.) - {formatter.format(selectedEvent.price * offer.multiplier)}
                 </option>
               ))}
             </select>
@@ -113,13 +126,29 @@ function Events() {
             <input 
               type="number" 
               min="1" 
+              step="1"
               value={quantity} 
-              onChange={e => setQuantity(Math.max(1, Number(e.target.value)))}
+              onChange={e => {
+                const val = Number(e.target.value);
+                if (val >= 1) setQuantity(Math.floor(val));
+              }}
             />
           </label>
           <br />
-          <button onClick={handleAddToCart}>Ajouter au panier</button>
-          <button onClick={() => setSelectedEvent(null)}>Annuler</button>
+          <p>
+            Prix total : {selectedOfferId 
+              ? formatter.format(selectedEvent.price * OFFERS.find(o => o.id === parseInt(selectedOfferId)).multiplier * quantity) 
+              : formatter.format(0)}
+          </p>
+          <button 
+            onClick={handleAddToCart}
+            disabled={!selectedOfferId || quantity < 1}
+          >
+            Ajouter au panier
+          </button>
+          <button onClick={() => setSelectedEvent(null)} style={{ marginLeft: '1em' }}>
+            Annuler
+          </button>
         </div>
       )}
     </div>

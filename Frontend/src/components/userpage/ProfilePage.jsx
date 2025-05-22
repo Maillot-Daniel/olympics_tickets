@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import UsersService from "../services/UsersService";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./ProfilePage.css";
 
 function ProfilePage() {
@@ -12,7 +12,6 @@ function ProfilePage() {
         id: ''
     });
     const [isLoading, setIsLoading] = useState(true);
-    const [redirectCountdown, setRedirectCountdown] = useState(3);
     const navigate = useNavigate();
 
     const fetchProfileInfo = useCallback(async () => {
@@ -29,6 +28,7 @@ function ProfilePage() {
             }
         } catch (error) {
             console.error('Profile fetch error:', error);
+            // Si erreur (token invalide, user pas connecté), redirige vers login
             navigate('/login');
         } finally {
             setIsLoading(false);
@@ -39,24 +39,13 @@ function ProfilePage() {
         fetchProfileInfo();
     }, [fetchProfileInfo]);
 
-    // Compte à rebours pour la redirection
-    useEffect(() => {
-        if (!isLoading && redirectCountdown > 0) {
-            const timer = setTimeout(() => {
-                setRedirectCountdown(redirectCountdown - 1);
-            }, 1000);
-            return () => clearTimeout(timer);
-        } else if (redirectCountdown === 0) {
-            navigate('/home');
-        }
-    }, [isLoading, redirectCountdown, navigate]);
-
     const canEditProfile = () => {
         const currentUserId = localStorage.getItem('userId');
         return currentUserId && currentUserId === profileInfo.id?.toString();
     };
 
     const handleEditClick = () => {
+        // Correction : backticks pour interpolation de chaîne
         navigate(`/update-user/${profileInfo.id}`);
     };
 
@@ -66,17 +55,14 @@ function ProfilePage() {
 
     return (
         <div className="profile-page-container">
-            {/* Message de bienvenue et statut */}
             <div className="welcome-banner">
                 <h2>Bienvenue, {profileInfo.name || 'cher utilisateur'} !</h2>
                 <div className="connection-status">
                     <span className="status-dot connected"></span>
                     <span>Vous êtes connecté en tant que {profileInfo.role || 'utilisateur'}</span>
                 </div>
-                <p>Vous allez être redirigé vers la page d'accueil dans {redirectCountdown} secondes...</p>
             </div>
 
-            {/* Informations du profil */}
             <div className="profile-section">
                 <h3>Vos informations personnelles</h3>
                 <div className="profile-details">
@@ -85,7 +71,6 @@ function ProfilePage() {
                 </div>
             </div>
 
-            {/* Bouton d'édition corrigé */}
             {(canEditProfile() || profileInfo.role === "ADMIN") && (
                 <div className="edit-section">
                     <p className="edit-info">

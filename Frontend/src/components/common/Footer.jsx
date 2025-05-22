@@ -6,10 +6,10 @@ const FooterComponent = () => {
     <footer className="footer">
       {/* Liens principaux */}
       <div className="footer-links">
-        <a href="#">À propos</a>
-        <a href="#">Billetterie</a>
-        <a href="#">Informations</a>
-        <a href="#">Contact</a>
+        <a href="/about">À propos</a>
+  <a href="/privacy">Confidentialité</a>
+  <a href="/contact">Contact</a>
+  <a href="/terms">Conditions</a>
       </div>
 
       {/* Contact + réseaux sociaux */}

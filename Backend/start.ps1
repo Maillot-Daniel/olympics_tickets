@@ -1,2 +1,2 @@
-$env:STRIPE_SECRET_KEY = "sk_dansunsation_lareunion_projetolympics974"
+$env:STRIPE_SECRET_KEY = "sk_test_51RQepe4T3sOUMUE7r3SFX5KeuYota4eAmMvVGO4XZsDlNFbHaslQDlTUY5vs2lupt7znPlwQCXaRReAeC5sc4xoj000wrACRwP"
 mvn spring-boot:run

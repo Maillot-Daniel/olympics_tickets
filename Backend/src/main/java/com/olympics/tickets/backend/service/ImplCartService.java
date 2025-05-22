@@ -1,4 +1,5 @@
 package com.olympics.tickets.backend.service;
 
-public class ImplCartService {
+public interface ImplCartService {
+    void validateCart(Long userId);
 }

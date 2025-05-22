@@ -59,34 +59,20 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers(
-                                "/auth/**",
-                                "/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-
-                        // Public access to events
+                        .requestMatchers(HttpMethod.POST, "/api/users/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/auth/register").permitAll()
+                        // Autres routes publiques
+                        .requestMatchers("/public/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
-
-                        // Secure cart access
+                        // Accès authentifié et admin
                         .requestMatchers("/api/cart/**").authenticated()
-
-                        // Admin access
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Event management (requires scope)
                         .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
                         .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
-
-                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
+
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

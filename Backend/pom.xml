@@ -13,6 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>backend</name>
 	<description>Backend project for Spring Boot</description>
+	<packaging>jar</packaging>
 	<url>https://github.com/votre-projet</url>
 	<properties>
 		<java.version>17</java.version>
@@ -84,20 +85,21 @@
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.12.3</version>
+			<version>0.11.5</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
-			<version>0.12.3</version>
+			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-			<version>0.12.3</version>
+			<artifactId>jjwt-jackson</artifactId> <!-- ou jjwt-gson si tu préfères -->
+			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+
 		<!--  Stripe  -->
 		<dependency>
 			<groupId>com.stripe</groupId>

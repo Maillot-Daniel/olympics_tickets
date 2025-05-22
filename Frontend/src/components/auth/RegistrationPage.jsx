@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import UsersService from "../services/UsersService";
 import { useNavigate } from "react-router-dom";
 
+
 function RegistrationPage() {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        role: '',
-        city: ''
-    });
+  name: '',
+  email: '',
+  password: '',
+  city: '',
+  role: 'USER'  // rôle par défaut
+});
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -19,27 +20,24 @@ function RegistrationPage() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem('token');
-            await UsersService.register(formData, token);
+  e.preventDefault();
+  try {
+    await UsersService.register(formData);
 
-            // Clear the form fields after successful registration
-            setFormData({
-                name: '',
-                email: '',
-                password: '',
-                role: '',
-                city: ''
-            });
-            alert('User registered successfully');
-            navigate('/admin/user-management');
-
-        } catch (error) {
-            console.error('Error registering user', error);
-            alert('An error occurred while registering user');
-        }
-    };
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      city: '',
+      role: 'USER'
+    });
+    alert('User registered successfully');
+    navigate('/admin/user-management');
+  } catch (error) {
+    console.error('Error registering user', error);
+    alert('An error occurred while registering user');
+  }
+};
 
     return (
         <div className="auth-container">
@@ -75,19 +73,7 @@ function RegistrationPage() {
                         required 
                     />
                 </div>
-                <div className="form-group">
-                    <label>Role:</label>
-                    <select 
-                        name="role" 
-                        value={formData.role} 
-                        onChange={handleInputChange} 
-                        required
-                    >
-                        <option value="">Select Role</option>
-                        <option value="USER">User</option>
-                        <option value="ADMIN">Admin</option>
-                    </select>
-                </div>
+               
                 <div className="form-group">
                     <label>City:</label>
                     <input 

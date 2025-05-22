@@ -16,33 +16,33 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private OurUsers user;
 
-    @ManyToOne
-    @JoinColumn(name = "offer_type", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "offer_type_id", referencedColumnName = "id", nullable = false)
     private OfferType offerType;
 
     @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "unit_price", precision = 19, scale = 4, nullable = false)
+    @Column(name = "unit_price", nullable = true)
     private BigDecimal unitPrice;
 
     @Transient
     public BigDecimal getTotalPrice() {
-        if (unitPrice != null && quantity > 0) {
-            return unitPrice.multiply(BigDecimal.valueOf(quantity));
+        if (unitPrice == null || quantity <= 0) {
+            return BigDecimal.ZERO;
         }
-        return BigDecimal.ZERO;
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 }

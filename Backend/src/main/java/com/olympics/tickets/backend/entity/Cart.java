@@ -1,8 +1,8 @@
 package com.olympics.tickets.backend.entity;
 
+import com.olympics.tickets.backend.entity.enums.CartStatus;
 import jakarta.persistence.*;
 import java.util.List;
-import java.util.ArrayList;
 
 @Entity
 public class Cart {
@@ -17,11 +17,10 @@ public class Cart {
     private boolean active;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CartStatus status = CartStatus.ACTIVE;
+    private CartStatus status;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> items = new ArrayList<>();
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    private List<CartItem> items;
 
     // Getters and Setters
     public Long getId() {

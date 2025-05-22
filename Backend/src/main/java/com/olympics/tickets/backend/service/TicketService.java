@@ -2,6 +2,7 @@ package com.olympics.tickets.backend.service;
 
 import com.olympics.tickets.backend.entity.*;
 import com.olympics.tickets.backend.exception.NotFoundException;
+import com.olympics.tickets.backend.exception.ResourceNotFoundException;
 import com.olympics.tickets.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,9 @@ public class TicketService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Événement non trouvé"));
 
-        OfferType offerType = offerTypeRepository.findById(offerTypeId)
-                .orElseThrow(() -> new NotFoundException("Type d'offre invalide"));
+        OfferType offerType = offerTypeRepository.findById(offerTypeId.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Type d'offre introuvable avec l'ID : " + offerTypeId));
+
 
         // Création du ticket
         Ticket ticket = Ticket.builder()

@@ -1,102 +1,155 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from 'react-router-dom';
-import UsersService from "../services/UsersService";
+import { Link, useNavigate } from "react-router-dom";
 import OlympicLogo from "../../assets/images/logo-jo.png";
-import { Power } from "lucide-react"; // Icône de déconnexion
+import { Power } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar() {
-  const [authState, setAuthState] = useState({
-    isAuthenticated: UsersService.isAuthenticated(),
-    isAdmin: UsersService.isAdmin()
-  });
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Debug: Affiche les changements d'état d'authentification
   useEffect(() => {
-    const checkAuth = () => {
-      setAuthState({
-        isAuthenticated: UsersService.isAuthenticated(),
-        isAdmin: UsersService.isAdmin()
-      });
-    };
+    console.log("Navbar - Auth state changed:", { user, isAuthenticated });
+  }, [user, isAuthenticated]);
 
-    const interval = setInterval(checkAuth, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const isAdmin = user?.role === "ADMIN";
 
-  const handleLogout = () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      UsersService.logout();
-      setAuthState({
-        isAuthenticated: false,
-        isAdmin: false
-      });
-      navigate('/login');
+  const handleLogout = async () => {
+    if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {
+      await logout();
+      setIsMobileMenuOpen(false);
+      navigate("/login");
     }
   };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen((prev) => !prev);
   };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Si le contexte est en cours de chargement, afficher une navbar minimale
+  if (isLoading) {
+    return (
+      <nav className="navbar loading" aria-label="Menu principal en chargement">
+        <div className="olympic-logo-container">
+          <Link to="/" aria-label="Accueil">
+            <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
+          </Link>
+        </div>
+        <div className="nav-loading">Chargement...</div>
+      </nav>
+    );
+  }
 
   return (
     <>
-      <nav className="navbar">
+      <nav className="navbar" role="navigation" aria-label="Menu principal">
         <div className="olympic-logo-container">
-          <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
+          <Link to="/" onClick={closeMobileMenu} aria-label="Accueil">
+            <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
+          </Link>
+          {isAuthenticated && user && (
+            <div className="user-badge">
+              <span className="user-email">{user.email}</span>
+              {isAdmin && <span className="user-role">(Admin)</span>}
+            </div>
+          )}
         </div>
 
-        <button 
-          className="mobile-menu-button"
+        <button
+          className={`mobile-menu-button ${isMobileMenuOpen ? "open" : ""}`}
           onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
+          aria-label={isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="nav-menu"
         >
-          ☰
+          <span className="menu-icon-bar"></span>
+          <span className="menu-icon-bar"></span>
+          <span className="menu-icon-bar"></span>
         </button>
 
-        <div className={`nav-container ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div id="nav-menu" className={`nav-container ${isMobileMenuOpen ? "open" : ""}`}>
           <ul className="nav-list">
             <li className="nav-item">
-              <Link to="/home" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Accueil</Link>
+              <Link to="/" className="nav-link" onClick={closeMobileMenu}>
+                Accueil
+              </Link>
             </li>
             <li className="nav-item">
-              <Link to="/public-events" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Événements</Link>
+              <Link to="/public-events" className="nav-link" onClick={closeMobileMenu}>
+                Événements
+              </Link>
             </li>
 
-            {authState.isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <li className="nav-item">
-                  <Link to="/profile" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Profil</Link>
+                  <Link to="/profile" className="nav-link" onClick={closeMobileMenu}>
+                    Mon Profil
+                  </Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="/cart" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Panier</Link>
+                  <Link to="/cart" className="nav-link" onClick={closeMobileMenu}>
+                    Panier
+                  </Link>
+                </li>
+                
+                {isAdmin && (
+                  <>
+                    <li className="nav-item admin-divider">
+                      <span className="admin-label">Administration</span>
+                    </li>
+                    <li className="nav-item">
+                      <Link to="/admin/events" className="nav-link admin-link" onClick={closeMobileMenu}>
+                        Gestion Événements
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link to="/admin/user-management" className="nav-link admin-link" onClick={closeMobileMenu}>
+                        Gestion Utilisateurs
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link to="/admin/create-event" className="nav-link admin-link" onClick={closeMobileMenu}>
+                        Créer un Événement
+                      </Link>
+                    </li>
+                  </>
+                )}
+
+                <li className="nav-item">
+                  <button 
+                    className="nav-link logout-link" 
+                    onClick={handleLogout}
+                    aria-label="Se déconnecter"
+                  >
+                    <Power size={16} className="logout-icon" />
+                    Déconnexion
+                  </button>
                 </li>
               </>
-            )}
-
-            {authState.isAdmin && (
+            ) : (
               <>
                 <li className="nav-item">
-                  <Link to="/events" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Événements Admin</Link>
+                  <Link to="/login" className="nav-link auth-link" onClick={closeMobileMenu}>
+                    Connexion
+                  </Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="/admin/user-management" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Utilisateurs Admin</Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/create-event" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>Créer un événement</Link>
+                  <Link to="/register" className="nav-link auth-link register" onClick={closeMobileMenu}>
+                    Inscription
+                  </Link>
                 </li>
               </>
             )}
           </ul>
         </div>
-
-        {/* Icône de déconnexion à droite */}
-        {authState.isAuthenticated && (
-          <div className="logout-icon" onClick={handleLogout} title="Se déconnecter">
-            <Power size={20} color="#e74c3c" />
-          </div>
-        )}
       </nav>
 
       <div className="navbar-spacer"></div>

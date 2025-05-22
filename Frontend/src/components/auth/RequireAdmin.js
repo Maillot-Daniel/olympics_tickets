@@ -1,13 +1,13 @@
 // src/components/auth/RequireAdmin.js
-import React from 'react';
 import { Navigate } from 'react-router-dom';
-import UsersService from '../services/UsersService';
+import { useAuth } from '../../context/AuthContext';
 
-const RequireAdmin = ({ children }) => {
-  if (!UsersService.adminOnly()) {
-    return <Navigate to="/login" />;
-  }
-  return children;
-};
+export default function RequireAdmin({ children }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
 
-export default RequireAdmin;
+  if (isLoading) return null;
+
+  return isAuthenticated && user?.role === 'ADMIN'
+    ? children
+    : <Navigate to="/" />;
+}
