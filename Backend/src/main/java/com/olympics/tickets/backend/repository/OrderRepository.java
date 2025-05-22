@@ -1,4 +1,4 @@
 package com.olympics.tickets.backend.repository;
 
-public class CartItemRepository {
+public class OrderRepository {
 }
