@@ -19,8 +19,14 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import GuestOnlyRoute from './components/GuestOnlyRoute/GuestOnlyRoute';
 import DebugAuth from './context/DebugAuth';
+import CguPages from './components/CguPages/CguPages';
+import AboutPage from './components/AboutPage/AboutPage';
+import PrivacyPage from './components/PrivacyPage/PrivacyPage';
+import ContactPage from './components/ContactPage/ContactPage';
+
 import background from './assets/images/Jeux_2024.jpg';
-import "./App.css";
+
+import './App.css';
 
 function App() {
   return (
@@ -133,6 +139,12 @@ function App() {
                     </RequireAdmin>
                   }
                 />
+
+                {/* Static pages */}
+                <Route path="/cgu" element={<CguPages />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/contact" element={<ContactPage />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />

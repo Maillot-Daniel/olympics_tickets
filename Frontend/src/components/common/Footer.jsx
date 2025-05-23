@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 const FooterComponent = () => {
@@ -6,15 +7,21 @@ const FooterComponent = () => {
     <footer className="footer">
       {/* Liens principaux */}
       <div className="footer-links">
-        <a href="/about">À propos</a>
-  <a href="/privacy">Confidentialité</a>
-  <a href="/contact">Contact</a>
-  <a href="/terms">Conditions</a>
+        <Link to="/about">À propos</Link>
+        <Link to="/privacy">Confidentialité</Link>
+        <Link to="/contact">Contact</Link>
+        <Link to="/cgu">CGU</Link>
       </div>
 
-      {/* Contact + réseaux sociaux */}
+      {/* Réseaux sociaux */}
       <div className="social-links">
-        <a href="https://github.com" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://github.com"
+          aria-label="GitHub"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-icon"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -27,7 +34,14 @@ const FooterComponent = () => {
           </svg>
           GitHub
         </a>
-        <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+
+        <a
+          href="https://linkedin.com"
+          aria-label="LinkedIn"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-icon"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -40,7 +54,14 @@ const FooterComponent = () => {
           </svg>
           LinkedIn
         </a>
-        <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
+
+        <a
+          href="https://twitter.com"
+          aria-label="Twitter"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-icon"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -56,7 +77,9 @@ const FooterComponent = () => {
       </div>
 
       {/* Bas de page */}
-      <p className="copyright">© Jeux Olympiques France 2024, tous droits réservés</p>
+      <p className="copyright">
+        © Jeux Olympiques France 2024, tous droits réservés
+      </p>
     </footer>
   );
 };

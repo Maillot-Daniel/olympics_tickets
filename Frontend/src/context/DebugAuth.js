@@ -7,10 +7,10 @@ export default function DebugAuth() {
   if (isLoading) {
     return <div>Chargement...</div>;
   }
-
+/*
   console.log('DEBUG AUTH - User:', user);
   console.log('DEBUG AUTH - isAuthenticated:', isAuthenticated);
-  console.log('DEBUG AUTH - Token:', localStorage.getItem('olympics_auth_token'));
+  console.log('DEBUG AUTH - Token:', localStorage.getItem('olympics_auth_token'));*/
 
   return (
     <div>

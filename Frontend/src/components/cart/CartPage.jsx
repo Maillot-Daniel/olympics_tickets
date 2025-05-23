@@ -10,25 +10,32 @@ function CartPage() {
   const totalPrice = items.reduce((acc, item) => acc + item.priceUnit * item.quantity, 0);
 
   const handleValidateOrder = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
-      alert("Veuillez vous connecter");
       navigate('/login');
       return;
     }
+
     setLoading(true);
     try {
-     await fetch("http://localhost:8080/api/cart/validate", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer " + token,
-    "Content-Type": "application/json"
-  }
-});
+      const response = await fetch("http://localhost:8080/api/cart/validate", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur serveur lors de la validation: ${errorText}`);
+      }
+
       alert("Commande validée !");
       clearCart();
+      navigate('/public-events');
     } catch (error) {
-      alert("Erreur lors de la validation du panier");
+      alert(error.message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -36,7 +43,7 @@ function CartPage() {
   };
 
   const handleContinueShopping = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
       navigate('/login');
     } else {

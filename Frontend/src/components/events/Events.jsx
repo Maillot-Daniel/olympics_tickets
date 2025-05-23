@@ -4,7 +4,6 @@ import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import "./Events.css";
 
-
 const OFFERS = [
   { id: 1, name: 'Solo', people: 1, multiplier: 1 },
   { id: 2, name: 'Duo', people: 2, multiplier: 1.9 },
@@ -62,9 +61,17 @@ function Events() {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    // Vérification stock côté frontend (préventive)
+    const maxAllowed = Math.floor(selectedEvent.remainingTickets / offer.people);
+    if (quantity > maxAllowed) {
+      alert(`Quantité trop élevée. Maximum possible pour cette offre : ${maxAllowed}`);
+      return;
+    }
+
+    const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
       alert("Veuillez vous connecter");
+      navigate('/login');
       return;
     }
 
@@ -95,23 +102,38 @@ function Events() {
   return (
     <div>
       <h2>Liste des événements</h2>
-      <ul>
+      <ul className="events-list">
         {events.map(event => (
-          <li key={event.id} style={{ marginBottom: '1em' }}>
+          <li key={event.id}>
+            <img 
+              src={event.image_url} 
+              alt={event.title} 
+              loading="lazy"
+            />
             <strong>{event.title}</strong> - {formatter.format(event.price)}
-            <button style={{ marginLeft: '1em' }} onClick={() => setSelectedEvent(event)}>Acheter</button>
+            <p>Places disponibles : {event.remainingTickets}</p>
+            <button onClick={() => {
+              setSelectedEvent(event);
+              setSelectedOfferId('');
+              setQuantity(1);
+            }}>
+              Acheter
+            </button>
           </li>
         ))}
       </ul>
 
       {selectedEvent && (
-        <div style={{ border: '1px solid black', padding: '1em', marginTop: '1em' }}>
+        <div className="purchase-section">
           <h3>Achat pour : {selectedEvent.title}</h3>
           <label>
             Offre : 
             <select
               value={selectedOfferId}
-              onChange={e => setSelectedOfferId(e.target.value)}
+              onChange={e => {
+                setSelectedOfferId(e.target.value);
+                setQuantity(1); // reset qty on offer change
+              }}
             >
               <option value="">-- Choisir une offre --</option>
               {OFFERS.map(offer => (
@@ -123,7 +145,7 @@ function Events() {
           </label>
           <br />
           <label>
-            Quantité :
+            Quantité (max {selectedOfferId ? Math.floor(selectedEvent.remainingTickets / OFFERS.find(o => o.id === parseInt(selectedOfferId)).people) : '-'}) :
             <input 
               type="number" 
               min="1" 
@@ -131,7 +153,12 @@ function Events() {
               value={quantity} 
               onChange={e => {
                 const val = Number(e.target.value);
-                if (val >= 1) setQuantity(Math.floor(val));
+                if (!selectedOfferId) return; // pas d'offre choisie => pas de modif
+                const offer = OFFERS.find(o => o.id === parseInt(selectedOfferId));
+                const maxQty = Math.floor(selectedEvent.remainingTickets / offer.people);
+                if (val >= 1 && val <= maxQty) setQuantity(Math.floor(val));
+                else if (val > maxQty) setQuantity(maxQty);
+                else setQuantity(1);
               }}
             />
           </label>
@@ -147,7 +174,7 @@ function Events() {
           >
             Ajouter au panier
           </button>
-          <button onClick={() => setSelectedEvent(null)} style={{ marginLeft: '1em' }}>
+          <button onClick={() => setSelectedEvent(null)} className="cancel-button">
             Annuler
           </button>
         </div>
@@ -156,4 +183,4 @@ function Events() {
   );
 }
 
-export default Events;
+export default Events; 

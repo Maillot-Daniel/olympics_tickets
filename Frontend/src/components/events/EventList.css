@@ -62,7 +62,7 @@
 /* En-tête de la carte */
 /* En-tête de carte */
 .card-header {
-  background-color: #16538f; 
+  background-color: #16538f; /* Fond uni sombre */
   color: #ffffff;           
   padding: 1.5rem;
 }

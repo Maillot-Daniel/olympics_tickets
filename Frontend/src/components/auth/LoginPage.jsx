@@ -108,9 +108,27 @@ function LoginPage() {
                   {showPassword ? "Masquer" : "Afficher"}
                 </button>
               </div>
-              <Link to="/forgot-password" className="forgot-password">
+
+              <button
+                type="button"
+                className="forgot-password"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("La fonction 'Mot de passe oublié' sera bientôt disponible.");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "blue",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  padding: 0,
+                  font: "inherit",
+                  marginTop: "0.5rem"
+                }}
+              >
                 Mot de passe oublié ?
-              </Link>
+              </button>
             </div>
 
             <button type="submit" className="login-button" disabled={isLoading}>

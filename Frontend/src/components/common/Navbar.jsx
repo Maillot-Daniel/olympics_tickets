@@ -11,7 +11,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Navbar - Auth state changed:", { user, isAuthenticated });
+
   }, [user, isAuthenticated]);
 
   const isAdmin = user?.role?.toLowerCase() === "admin";
@@ -53,7 +53,7 @@ function Navbar() {
             <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
           </Link>
 
-          {isAuthenticated && user && (
+         {isAuthenticated && user && (
             <div className="user-badge" aria-label="Informations utilisateur">
               <span className="user-email">{user.email || "Utilisateur"}</span>
               {isAdmin && <span className="user-role">(Admin)</span>}

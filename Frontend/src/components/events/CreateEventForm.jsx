@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function CreateEventForm() {
@@ -11,6 +12,8 @@ function CreateEventForm() {
     totalTickets: null
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEvent(prev => ({
@@ -22,13 +25,22 @@ function CreateEventForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
-      alert('Vous devez être connecté pour créer un événement.');
+      alert("Veuillez vous connecter");
+      navigate('/login');
       return;
     }
 
-   
+    // Validation que la date est dans le futur
+    const today = new Date();
+    const eventDate = new Date(event.date);
+    if (eventDate <= today) {
+      alert("La date de l'événement doit être dans le futur");
+      return;
+    }
+
+    // Formatage de la date au format ISO complet
     const formattedEvent = {
       ...event,
       date: event.date ? event.date + "T00:00:00" : null
@@ -65,6 +77,7 @@ function CreateEventForm() {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Créer un événement</h2>
+
       <input
         name="title"
         placeholder="Titre"
@@ -72,6 +85,7 @@ function CreateEventForm() {
         onChange={handleChange}
         required
       />
+
       <textarea
         name="description"
         placeholder="Description"
@@ -79,6 +93,7 @@ function CreateEventForm() {
         onChange={handleChange}
         required
       />
+
       <input
         type="date"
         name="date"
@@ -86,6 +101,7 @@ function CreateEventForm() {
         onChange={handleChange}
         required
       />
+
       <input
         name="location"
         placeholder="Lieu"
@@ -93,6 +109,7 @@ function CreateEventForm() {
         onChange={handleChange}
         required
       />
+
       <input
         type="number"
         name="price"
@@ -103,15 +120,17 @@ function CreateEventForm() {
         step="0.01"
         required
       />
+
       <input
-       type="number"
-       name="totalTickets"
+        type="number"
+        name="totalTickets"
         placeholder="Nombre total de tickets"
         value={event.totalTickets !== null ? event.totalTickets : ''}
         onChange={handleChange}
         min="0"
         required
       />
+
       <button type="submit">Créer</button>
     </form>
   );

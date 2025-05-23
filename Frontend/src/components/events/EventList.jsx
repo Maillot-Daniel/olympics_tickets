@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, navigate } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import './EventList.css';
@@ -16,7 +16,7 @@ function EventList() {
   });
 
   const location = useLocation();
-  const refs = useRef({}); 
+  const refs = useRef({}); // Pour scroller vers un event
 
   useEffect(() => {
     fetchEvents();
@@ -54,12 +54,12 @@ function EventList() {
   };
 
   const handleDelete = async (id) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
-      alert('Vous devez être connecté pour supprimer un événement.');
+      alert("Veuillez vous connecter");
+      navigate('/login');
       return;
     }
-
     try {
       await axios.delete(`http://localhost:8080/api/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -97,9 +97,10 @@ function EventList() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+   const token = localStorage.getItem('olympics_auth_token');
     if (!token) {
-      alert('Vous devez être connecté pour modifier un événement.');
+      alert("Veuillez vous connecter");
+      navigate('/login');
       return;
     }
 
