@@ -16,7 +16,7 @@ function EventList() {
   });
 
   const location = useLocation();
-  const refs = useRef({}); // Pour scroller vers un event
+  const refs = useRef({}); 
 
   useEffect(() => {
     fetchEvents();

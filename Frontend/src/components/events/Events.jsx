@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useCart } from '../../context/CartContext'; // Assure-toi du bon chemin
+import { useCart } from '../../context/CartContext'; 
 import { useNavigate } from 'react-router-dom';
 import "./Events.css";
 
-// Offres avec IDs pour correspondance backend
+
 const OFFERS = [
   { id: 1, name: 'Solo', people: 1, multiplier: 1 },
   { id: 2, name: 'Duo', people: 2, multiplier: 1.9 },

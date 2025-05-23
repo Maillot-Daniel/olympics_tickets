@@ -6,7 +6,7 @@
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Aligne logo + liens à gauche */
+  justify-content: flex-start;
   gap: 2rem;
   z-index: 1000;
   flex-wrap: nowrap;
@@ -16,7 +16,7 @@
 
 /* Espace réservé sous la navbar */
 .navbar-spacer {
-  height: 60px; /* Doit correspondre à la hauteur navbar */
+  height: 60px;
 }
 
 /* Logo container */
@@ -53,7 +53,7 @@
   text-decoration: none;
   font-weight: 500;
   font-size: 1rem;
-  white-space: nowrap; /* Evite retour à la ligne */
+  white-space: nowrap;
   transition: color 0.3s ease;
 }
 
@@ -92,7 +92,7 @@
   color: white;
   flex-shrink: 0;
   padding: 0;
-  margin-left: auto; /* pousse hamburger à droite */
+  margin-left: auto;
 }
 
 /* Les barres du hamburger */
@@ -121,7 +121,7 @@
 /* Responsive mobile */
 
 @media (max-width: 768px) {
-  /* Cache le menu par défaut */
+
   .nav-container {
     position: fixed;
     top: 60px;
@@ -138,7 +138,6 @@
     overflow-y: auto;
   }
 
-  /* Affiche quand menu ouvert */
   .nav-container.open {
     display: flex;
   }

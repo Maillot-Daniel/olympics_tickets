@@ -28,7 +28,7 @@ function CreateEventForm() {
       return;
     }
 
-    // Préparation des données avec date au format ISO complet
+   
     const formattedEvent = {
       ...event,
       date: event.date ? event.date + "T00:00:00" : null

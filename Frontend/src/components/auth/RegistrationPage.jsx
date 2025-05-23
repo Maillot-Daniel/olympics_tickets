@@ -11,7 +11,7 @@ function RegistrationPage() {
   email: '',
   password: '',
   city: '',
-  role: 'USER'  // rôle par défaut
+  role: 'USER'
 });
 
     const handleInputChange = (e) => {

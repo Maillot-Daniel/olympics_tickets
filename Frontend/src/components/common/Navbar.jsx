@@ -14,7 +14,7 @@ function Navbar() {
     console.log("Navbar - Auth state changed:", { user, isAuthenticated });
   }, [user, isAuthenticated]);
 
-  const isAdmin = user?.role?.toLowerCase() === "admin"; // insensitive case
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const handleLogout = async () => {
     if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {

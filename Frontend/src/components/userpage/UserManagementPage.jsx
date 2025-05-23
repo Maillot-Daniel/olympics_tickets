@@ -9,7 +9,7 @@ function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const isAdmin = UsersService.isAdmin(); // ✅ Stocké une fois ici
+  const isAdmin = UsersService.isAdmin(); // Stocké une fois ici
 
   // Fonction pour récupérer tous les utilisateurs
   const fetchUsers = useCallback(async () => {
@@ -46,7 +46,7 @@ function UserManagementPage() {
       }
 
       try {
-        await UsersService.getProfile(); // ✅ Appelle correcte
+        await UsersService.getProfile(); // Appelle correcte
         fetchUsers();
       } catch (err) {
         if (err.response?.status === 403) {

@@ -33,7 +33,7 @@
 
 /* Carte événement */
 .event-card {
-  background: #f7f9fb; /* gris clair doux */
+  background: #f7f9fb;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -62,8 +62,8 @@
 /* En-tête de la carte */
 /* En-tête de carte */
 .card-header {
-  background-color: #16538f; /* Fond uni sombre */
-  color: #ffffff;            /* Texte blanc */
+  background-color: #16538f; 
+  color: #ffffff;           
   padding: 1.5rem;
 }
 

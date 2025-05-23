@@ -1,4 +1,3 @@
-// src/components/LoadingSpinner.jsx
 import './LoadingSpinner.css';
 
 const LoadingSpinner = ({ message }) => (

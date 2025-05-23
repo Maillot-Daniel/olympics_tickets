@@ -1,4 +1,3 @@
-// src/services/UsersService.js
 import axios from "axios";
 
 class UsersService {

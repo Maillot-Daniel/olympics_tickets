@@ -1,4 +1,3 @@
-// src/pages/ForgotPasswordPage.jsx
 import React, { useState } from 'react';
 import UsersService from '../services/UsersService';
 
