@@ -25,11 +25,18 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    private static final List<String> ALLOWED_ORIGINS = Arrays.asList(
+            "http://localhost:3000",
+            "https://staging.yourdomain.com",
+            "https://yourdomain.com"
+    );
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
@@ -40,8 +47,7 @@ public class SecurityConfig {
             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
             JwtAccessDeniedHandler jwtAccessDeniedHandler,
             OurUserDetailsService ourUserDetailsService,
-            JwtAuthFilter jwtAuthFilter
-    ) {
+            JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
         this.ourUserDetailsService = ourUserDetailsService;
@@ -59,31 +65,42 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/users/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/auth/register").permitAll()
-                        // Autres routes publiques
-                        .requestMatchers("/public/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
-                        // Accès authentifié et admin
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/users/auth/login",
+                                "/api/users/auth/register"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/public/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/events/**",
+                                "/api/offer_types/**"
+                        ).permitAll()
+
+                        // Secured endpoints
                         .requestMatchers("/api/cart/**").authenticated()
-
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Routes d'édition d'événements : basées sur SCOPE_EVENTS:WRITE
-                        .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
-                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
-
-
-                        .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
-                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
-
                         .requestMatchers("/api/payment/**").permitAll()
 
+                        // Events management
+                        .requestMatchers(HttpMethod.POST, "/api/events").hasAuthority("SCOPE_EVENTS:WRITE")
+                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasAuthority("SCOPE_EVENTS:WRITE")
+
+                        // Offer types management
+                        .requestMatchers(HttpMethod.POST, "/api/offer_types/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/offer_types/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/offer_types/**").hasRole("ADMIN")
+
+                        // All other requests need authentication
                         .anyRequest().authenticated()
                 )
-
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -93,28 +110,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "https://staging.yourdomain.com",
-                "https://yourdomain.com"
-        ));
-        configuration.setAllowedMethods(Arrays.asList(
-                HttpMethod.GET.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.PUT.name(),
-                HttpMethod.DELETE.name(),
-                HttpMethod.OPTIONS.name()
-        ));
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept"
-        ));
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "X-Refresh-Token"
-        ));
+        configuration.setAllowedOrigins(ALLOWED_ORIGINS);
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "X-Refresh-Token"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

@@ -10,9 +10,7 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-
-  }, [user, isAuthenticated]);
+  useEffect(() => {}, [user, isAuthenticated]);
 
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
@@ -53,7 +51,7 @@ function Navbar() {
             <img src={OlympicLogo} alt="Olympic Logo" className="olympic-logo" />
           </Link>
 
-         {isAuthenticated && user && (
+          {isAuthenticated && user && (
             <div className="user-badge" aria-label="Informations utilisateur">
               <span className="user-email">{user.email || "Utilisateur"}</span>
               {isAdmin && <span className="user-role">(Admin)</span>}
@@ -85,10 +83,14 @@ function Navbar() {
                 Événements
               </Link>
             </li>
+            <li className="nav-item">
+              <Link to="/offers" className="nav-link" onClick={closeMobileMenu}>
+                Offres
+              </Link>
+            </li>
 
             {isAuthenticated ? (
               <>
-                
                 <li className="nav-item">
                   <Link to="/cart" className="nav-link" onClick={closeMobileMenu}>
                     Panier
@@ -115,12 +117,17 @@ function Navbar() {
                         Créer un Événement
                       </Link>
                     </li>
+                    <li className="nav-item">
+                      <Link to="/admin/offers-gestion" className="nav-link admin-link" onClick={closeMobileMenu}>
+                        Gestion Offres
+                      </Link>
+                    </li>
                   </>
                 )}
 
                 <li className="nav-item">
-                  <button 
-                    className="nav-link logout-link" 
+                  <button
+                    className="nav-link logout-link"
                     onClick={handleLogout}
                     aria-label="Se déconnecter"
                   >

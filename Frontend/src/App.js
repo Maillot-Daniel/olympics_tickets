@@ -15,6 +15,10 @@ import Events from './components/events/Events';
 import EventList from './components/events/EventList';
 import CreateEventForm from './components/events/CreateEventForm';
 import CartPage from './components/cart/CartPage';
+
+import OffersPage from './components/OffersPage/OffersPage';
+import OffersGestion from './components/OffersGestion/OffersGestion';
+
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import GuestOnlyRoute from './components/GuestOnlyRoute/GuestOnlyRoute';
@@ -25,7 +29,6 @@ import PrivacyPage from './components/PrivacyPage/PrivacyPage';
 import ContactPage from './components/ContactPage/ContactPage';
 
 import background from './assets/images/Jeux_2024.jpg';
-
 import './App.css';
 
 function App() {
@@ -49,98 +52,28 @@ function App() {
 
             <div className="content">
               <Routes>
-                {/* Public routes */}
+                {/* Public */}
                 <Route path="/" element={<HomePage />} />
+                <Route path="/offers" element={<OffersPage />} />
 
-                {/* Guest-only routes */}
-                <Route
-                  path="/login"
-                  element={
-                    <GuestOnlyRoute>
-                      <LoginPage />
-                    </GuestOnlyRoute>
-                  }
-                />
-                <Route
-                  path="/register"
-                  element={
-                    <GuestOnlyRoute>
-                      <RegistrationPage />
-                    </GuestOnlyRoute>
-                  }
-                />
+                {/* Guests */}
+                <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
+                <Route path="/register" element={<GuestOnlyRoute><RegistrationPage /></GuestOnlyRoute>} />
 
-                {/* Admin registration */}
-                <Route
-                  path="/admin/register"
-                  element={
-                    <RequireAdmin>
-                      <RegistrationPage adminRegistration={true} />
-                    </RequireAdmin>
-                  }
-                />
+                {/* Admin-only */}
+                <Route path="/admin/register" element={<RequireAdmin><RegistrationPage adminRegistration={true} /></RequireAdmin>} />
+                <Route path="/admin/events" element={<RequireAdmin><EventList /></RequireAdmin>} />
+                <Route path="/admin/user-management" element={<RequireAdmin><UserManagementPage /></RequireAdmin>} />
+                <Route path="/admin/update-user/:userId" element={<RequireAdmin><UpdateUser /></RequireAdmin>} />
+                <Route path="/admin/create-event" element={<RequireAdmin><CreateEventForm /></RequireAdmin>} />
+                <Route path="/admin/offers-gestion" element={<RequireAdmin><OffersGestion /></RequireAdmin>} />
 
-                {/* User routes */}
-                <Route
-                  path="/profile"
-                  element={
-                    <RequireUser>
-                      <ProfilePage />
-                    </RequireUser>
-                  }
-                />
-                <Route
-                  path="/public-events"
-                  element={
-                    <RequireUser>
-                      <Events />
-                    </RequireUser>
-                  }
-                />
-                <Route
-                  path="/cart"
-                  element={
-                    <RequireUser>
-                      <CartPage />
-                    </RequireUser>
-                  }
-                />
+                {/* Authenticated users */}
+                <Route path="/profile" element={<RequireUser><ProfilePage /></RequireUser>} />
+                <Route path="/public-events" element={<RequireUser><Events /></RequireUser>} />
+                <Route path="/cart" element={<RequireUser><CartPage /></RequireUser>} />
 
-                {/* Admin routes */}
-                <Route
-                  path="/admin/events"
-                  element={
-                    <RequireAdmin>
-                      <EventList />
-                    </RequireAdmin>
-                  }
-                />
-                <Route
-                  path="/admin/user-management"
-                  element={
-                    <RequireAdmin>
-                      <UserManagementPage />
-                    </RequireAdmin>
-                  }
-                />
-                <Route
-                  path="/admin/update-user/:userId"
-                  element={
-                    <RequireAdmin>
-                      <UpdateUser />
-                    </RequireAdmin>
-                  }
-                />
-                <Route
-                  path="/admin/create-event"
-                  element={
-                    <RequireAdmin>
-                      <CreateEventForm />
-                    </RequireAdmin>
-                  }
-                />
-
-                {/* Static pages */}
+                {/* Static */}
                 <Route path="/cgu" element={<CguPages />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

@@ -37,7 +37,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/swagger-resources")
                 || path.startsWith("/webjars")
-                || path.startsWith("/api/events");  // Ajoute cette ligne
+                || path.startsWith("/api/events")
+                || path.startsWith("/api/offer_types");
     }
 
     @Override
@@ -54,7 +55,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            final String jwt = authHeader.substring(7);
+            final String jwt = authHeader.substring(7).trim();
+            if (jwt.isEmpty()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             final String userEmail = jwtUtils.extractUsername(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
