@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import './CartPage.css';
 
 function CartPage() {
   const { items, removeItem, clearCart } = useCart();
@@ -59,7 +60,7 @@ function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div>
+      <div className="cart-container">
         <h2>Votre panier est vide.</h2>
         <button onClick={handleContinueShopping}>
           Continuer mes achats
@@ -69,15 +70,17 @@ function CartPage() {
   }
 
   return (
-    <div>
+    <div className="cart-container">
       <h2>Votre panier</h2>
-      <ul>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {items.map((item, idx) => (
-          <li key={item.id || idx} style={{ marginBottom: '1em' }}>
-            <strong>{item.eventTitle}</strong> - {item.offerName} - {item.quantity} x {item.priceUnit.toFixed(2)} €
+          <li key={item.id || idx} className="cart-item">
+            <strong>{item.eventTitle}</strong> - {item.offerName}<br />
+            Quantité : {item.quantity} x {item.priceUnit.toFixed(2)} €
+            <br />
             <button 
               onClick={() => removeItem(item.eventId, item.offerTypeId)} 
-              style={{ marginLeft: '1em', color: 'red' }}
+              style={{ marginTop: '0.5rem', color: 'red' }}
               disabled={loading}
             >
               Supprimer
@@ -86,15 +89,50 @@ function CartPage() {
         ))}
       </ul>
       <p><strong>Total : {totalPrice.toFixed(2)} €</strong></p>
-      <button onClick={handleValidateOrder} disabled={loading}>
-        {loading ? 'Validation...' : 'Valider la commande'}
-      </button>
-      <button onClick={handleContinueShopping} style={{ marginLeft: '1em' }} disabled={loading}>
-        Continuer mes achats
-      </button>
-      <button onClick={handleClearCart} style={{ marginLeft: '1em', color: 'orange' }} disabled={loading}>
-        Vider le panier
-      </button>
+      <div className="cart-buttons">
+        <button 
+  onClick={handleValidateOrder} 
+  disabled={loading}
+  style={{
+    backgroundColor: '#28a745', // vert
+    color: 'white',
+    padding: '0.5rem 1rem',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    opacity: loading ? 0.6 : 1
+  }}
+>
+  {loading ? 'Validation...' : 'Valider la commande'}
+</button>
+
+<button 
+  onClick={handleContinueShopping} 
+  disabled={loading}
+  style={{
+    backgroundColor: '#007bff', // bleu
+    color: 'white',
+    padding: '0.5rem 1rem',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    opacity: loading ? 0.6 : 1,
+    marginLeft: '1em'
+  }}
+>
+  Continuer mes achats
+</button>
+
+        <button 
+          onClick={handleClearCart} 
+          style={{ backgroundColor: 'orange' }} 
+          disabled={loading}
+        >
+          Vider le panier
+        </button>
+      </div>
     </div>
   );
 }
